@@ -1,43 +1,58 @@
 import pathlib
 import pandas as pd
+from tqdm import tqdm
 from data_utils import read_data
+
 
 def main(): 
     # define path
     path = pathlib.Path(__file__)
 
     # data path 
-    data_path = path.parents[2] / "data" / "1A og 2A 2021 til nu.csv"
+    kolt_1a_path = path.parents[1] / "data" / "1A_from_kolt.csv"
 
     # read data
-    df = read_data(data_path, chunksize=100000)
+    kolt_1a_data = read_data(kolt_1a_path, chunksize=10000, sep=",")
 
-    # df 
-    sorted_df = df.sort_values(by="date")
+    # bus id col 
+    kolt_1a_data['bus_id'] = kolt_1a_data['date'] + "_" + str(kolt_1a_data['ITCS_number']) + "_" + kolt_1a_data['turstarttid']
 
-    # get only 1A
-    df_1A = sorted_df[sorted_df["line"] == "1A"]
+    # loop over unique bus ids
+    unique_bus_ids = kolt_1a_data['bus_id'].unique()
+    threshold = 0.8
+    remove_bus_ids = []
 
-    # add year col 
-    df_1A["year"] = pd.to_datetime(df_1A["date"]).dt.year
+    for bus_id in tqdm(unique_bus_ids, total=len(unique_bus_ids)):
+        # select bus id
+        bus = kolt_1a_data[kolt_1a_data['bus_id'] == bus_id]
 
-    # get only 2021
-    df_1A_2023 = df_1A[df_1A["year"] == 2023]
-    print(len(df_1A_2023))
+        # calculate how many percent of "Cumulative" equals zero
+        zero_percentage = (bus['Cumulative'] == 0).sum() / len(bus['Cumulative'])
 
-    # drop duplicates
-    df_1A_2023 = df_1A_2023.drop_duplicates()
-    print(len(df_1A_2023))
+        # if percentage is above threshold, add id to remove list
+        if zero_percentage > threshold:
+            remove_bus_ids.append(bus_id)
 
-    print(df_1A_2023)
+    # remove bus ids from data
+    kolt_1a_data_filtered = kolt_1a_data[~kolt_1a_data['bus_id'].isin(remove_bus_ids)]
 
-    # extract week day from date 
-    df_1A_2023["weekday"] = pd.to_datetime(df_1A_2023["date"]).dt.weekday
+    # print len of both
+    print(f"Original data: {len(kolt_1a_data)}")
+    print(f"Filtered data: {len(kolt_1a_data_filtered)}")
 
-    # get weekdays per ict number
-    weekdays_per_itcs = df_1A_2023.groupby("ITCS_number")["weekday"].value_counts()
+    # save to csv
+    kolt_1a_data_filtered.to_csv(path.parents[1] / "data" / "kolt_1a_data_filtered.csv", index=False)
 
-    print(weekdays_per_itcs)
+    
+    # select date (2022-07-20) and ITCS_number (299)
+    #selected_bus = kolt_1a_data[(kolt_1a_data["date"] == "2022-07-20") & (kolt_1a_data["ITCS_number"] == 299)]
+
+    # save to csv
+    #selected_bus.to_csv(path.parents[2] / "data" / "selected_bus.csv", index=False)
+    
+
+
+
     
 if __name__ == "__main__":
     main()
