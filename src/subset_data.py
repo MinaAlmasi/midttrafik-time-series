@@ -19,36 +19,20 @@ def main():
     df_1A = sorted_df[sorted_df["line"] == "1A"]
 
     # get only one direction (Kolt - Vejlby / Skejbyparken)
-    df_1A = df_1A[df_1A["retningnavn"] == "Kolt - Vejlby / Skejbyparken"]
+    retningnavn = "Kolt - Vejlby / Skejbyparken"
+    print(f"[INFO]: Filter on direction {retningnavn}")
+    df_1A = df_1A[df_1A["retningnavn"] == retningnavn]
+
+    # save 1A from_Kolt
+    df_1A.to_csv(path.parents[1] / "data" / "1A_from_kolt.csv", index=False)
 
     # save only stop number = 751301201
-    df_1A = df_1A[df_1A["stopnumber"] == 751301201]
+    stopnumber = 751301201
+    print(f"[INFO]: Filter on stop number {stopnumber}")
+    norreport_1A = df_1A[df_1A["stopnumber"] == stopnumber]
 
     # save as CSV 
-    df_1A.to_csv(path.parents[1] / "data" / "1A_norreport.csv", index=False)
+    norreport_1A.to_csv(path.parents[1] / "data" / "1A_norreport.csv", index=False)
 
-    # save 1A 
-    print(df_1A)
-
-    # add year col 
-    '''
-    df_1A["year"] = pd.to_datetime(df_1A["date"]).dt.year
-
-    # get only 2021
-    df_1A_2023 = df_1A[df_1A["year"] == 2023]
-    print(len(df_1A_2023))
-
-    # drop duplicates
-    df_1A_2023 = df_1A_2023.drop_duplicates()
-    print(len(df_1A_2023))
-
-    print(df_1A_2023)
-
-    # extract week day from date 
-    df_1A_2023["weekday"] = pd.to_datetime(df_1A_2023["date"]).dt.weekday
-
-    # get weekdays per ict number
-    weekdays_per_itcs = df_1A_2023.groupby("ITCS_number")["weekday"].value_counts()
-
-    print(weekdays_per_itcs)
-    '''
+if __name__ == "__main__":
+    main()
