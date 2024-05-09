@@ -15,25 +15,22 @@ def main():
     kolt_1a_data = read_data(kolt_1a_path, chunksize=10000, sep=",")
 
     # bus id col 
+    print("[INFO:] Create bus id column")
     kolt_1a_data['bus_id'] = kolt_1a_data['date'] + "_" + str(kolt_1a_data['ITCS_number']) + "_" + kolt_1a_data['turstarttid']
 
     # loop over unique bus ids
-    unique_bus_ids = kolt_1a_data['bus_id'].unique()
     threshold = 0.8
     remove_bus_ids = []
 
-    for bus_id in tqdm(unique_bus_ids, total=len(unique_bus_ids)):
-        # select bus id
-        bus = kolt_1a_data[kolt_1a_data['bus_id'] == bus_id]
+    tqdm.pandas()
 
-        # calculate how many percent of "Cumulative" equals zero
-        zero_percentage = (bus['Cumulative'] == 0).sum() / len(bus['Cumulative'])
+    # Calculate zero percentage for each bus id
+    zero_percentage = kolt_1a_data.groupby('bus_id')['Cumulative'].progress_apply(lambda x: (x == 0).mean())
 
-        # if percentage is above threshold, add id to remove list
-        if zero_percentage > threshold:
-            remove_bus_ids.append(bus_id)
+    # Filter out bus ids with zero percentage above threshold
+    remove_bus_ids = zero_percentage[zero_percentage > threshold].index.tolist()
 
-    # remove bus ids from data
+    # Remove bus ids from data
     kolt_1a_data_filtered = kolt_1a_data[~kolt_1a_data['bus_id'].isin(remove_bus_ids)]
 
     # print len of both
@@ -41,6 +38,7 @@ def main():
     print(f"Filtered data: {len(kolt_1a_data_filtered)}")
 
     # save to csv
+    print("[INFO:] Save filtered data")
     kolt_1a_data_filtered.to_csv(path.parents[1] / "data" / "kolt_1a_data_filtered.csv", index=False)
 
     
