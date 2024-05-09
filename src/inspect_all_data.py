@@ -1,21 +1,6 @@
 import pathlib
 import pandas as pd
-from tqdm import tqdm
-
-def read_data(data_path, chunksize:int=None, sep=";"):
-    """
-    Read data from path. 
-    """
-    # read data
-    if chunksize is None:
-        df = pd.read_csv(data_path, sep=sep)
-
-    else:
-        reader = pd.read_csv(data_path, sep=sep, chunksize=chunksize)
-        dfs = [chunk for chunk in tqdm(reader)]
-        df = pd.concat(dfs, ignore_index=True)
-
-    return df    
+from data_utils import read_data
 
 def main(): 
     # define path
@@ -46,6 +31,13 @@ def main():
 
     print(df_1A_2023)
 
+    # extract week day from date 
+    df_1A_2023["weekday"] = pd.to_datetime(df_1A_2023["date"]).dt.weekday
 
+    # get weekdays per ict number
+    weekdays_per_itcs = df_1A_2023.groupby("ITCS_number")["weekday"].value_counts()
+
+    print(weekdays_per_itcs)
+    
 if __name__ == "__main__":
     main()
