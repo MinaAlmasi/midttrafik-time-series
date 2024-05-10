@@ -72,6 +72,9 @@ def main():
     # take the mean y for each ds
     norreport_1A = norreport_1A.groupby('ds').mean().reset_index()
 
+    # add missing time intervals
+    norreport_1A = add_missing_time_intervals(norreport_1A)
+
     # save 
     norreport_1A.to_csv('data/processed_1A_norreport.csv', index=False)
 
