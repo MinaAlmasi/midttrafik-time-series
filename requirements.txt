@@ -4,3 +4,4 @@ matplotlib
 neuralprophet
 plotly
 kaleido
+statsmodels
