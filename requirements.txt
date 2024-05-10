@@ -3,3 +3,4 @@ tqdm
 matplotlib
 neuralprophet
 plotly
+kaleido
