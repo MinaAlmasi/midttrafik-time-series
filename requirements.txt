@@ -5,3 +5,4 @@ neuralprophet
 plotly
 kaleido
 statsmodels
+scikit-learn
