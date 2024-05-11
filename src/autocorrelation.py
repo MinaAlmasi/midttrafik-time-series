@@ -32,7 +32,7 @@ def main():
 
     # rm whitespace
     fig.tight_layout()
-    fig.savefig(plot_dir / "autocorrelation.png", dpi=300)  
+    fig.savefig(plot_dir / "norreport_1A_autocorrelation.png", dpi=300)  
 
 if __name__ == "__main__":
     main()
