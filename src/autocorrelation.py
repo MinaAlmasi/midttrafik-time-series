@@ -1,6 +1,7 @@
 import pathlib
 import pandas as pd
 from statsmodels.graphics.tsaplots import plot_acf
+import matplotlib.pyplot as plt
 
 def main():
     # set paths
@@ -12,12 +13,26 @@ def main():
     data = pd.read_csv(data_dir / "processed_1A_norreport.csv")
 
     # create autocorrelation plot
+    n_lags = 48 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
+
     print("[INFO:] Creating autocorrelation plot")
-    autocor_plot = plot_acf(data["y"], lags=50)
+    fig, ax = plt.subplots(figsize=(24, 6)) 
+    autocor_plot = plot_acf(data["y"], lags=n_lags, zero=False, ax=ax) # markersize = 1, linewidth = 0.5 (could be added)
 
-    # save plot
-    autocor_plot.savefig(plot_dir / "autocorrelation.png")
+    # change axis tick values from lags to hours 
+    xticks = ax.get_xticks()
+    ax.set_xticks(xticks)
+    ax.set_xticklabels([int(xtick)/2 for xtick in xticks])
+    ax.set_xlim(0, n_lags)
 
+    # labels
+    ax.set_title('')  
+    ax.set_xlabel('Hours')  
+    ax.set_ylabel('Autocorrelation') 
+
+    # rm whitespace
+    fig.tight_layout()
+    fig.savefig(plot_dir / "autocorrelation.png", dpi=300)  
 
 if __name__ == "__main__":
     main()
