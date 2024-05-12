@@ -1,25 +1,8 @@
 import pathlib
 import pandas as pd 
 from neuralprophet import NeuralProphet, set_log_level
-from sklearn.model_selection import TimeSeriesSplit
 import multiprocessing as mp
-
-def split_timeseries_data(X, n_splits:int=100, gap:int=48, test_size:int=48, max_train_size=None):
-    '''
-    function to split the data into n_splits using TimeSeriesSplit
-    '''
-    # set the time series split
-    tscv = TimeSeriesSplit(
-        n_splits=n_splits,
-        gap=gap,
-        max_train_size=max_train_size,
-        test_size=test_size
-    )
-    
-    # split the data
-    data_generator = tscv.split(X)
-
-    return data_generator
+from data_utils import split_timeseries_data
     
 def cv_single_fold(train_ind, test_ind, df, freq):
     '''
@@ -30,10 +13,12 @@ def cv_single_fold(train_ind, test_ind, df, freq):
     
     # init model
     model = NeuralProphet(
-                        yearly_seasonality = True,  
                         weekly_seasonality = True, 
                         daily_seasonality = True,
-                        epochs=10,
+                        epochs=50,
+                        batch_size=48,
+                        learning_rate=0.2,
+                        loss_func = "MSE"
                         )
     # fit and test
     model.fit(df_train, freq=freq)
@@ -71,7 +56,9 @@ def main():
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
 
     # split the data
-    generator = split_timeseries_data(df['ds'], n_splits=50, gap=48, test_size=48)
+    gap = 24
+    max_train_size = 48 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
+    generator = split_timeseries_data(df['ds'], gap=gap, test_size=48, max_train_size=max_train_size)
 
     # cross validate
     print("[INFO:] Cross-validating the model...")
