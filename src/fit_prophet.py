@@ -18,7 +18,7 @@ def cv_single_fold(train_ind, test_ind, df, freq):
                         epochs=50,
                         batch_size=48,
                         learning_rate=0.2,
-                        loss_func = "MSE"
+                        loss_func = "MAE"
                         )
     # fit and test
     model.fit(df_train, freq=freq)
