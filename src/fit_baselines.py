@@ -42,7 +42,7 @@ def mean_model(df, df_tests):
 
     return mae
 
-def naive_model(df_trains, df_tests, gap=48):
+def naive_model(df_trains, df_tests, gap=24):
     '''
     Naive model which always predicts last value in the training set (per fold)
     '''
@@ -73,7 +73,7 @@ def weekly_naive_model(df, df_tests):
     Seasonal naive model which predicts the value from the same time one week ago
     '''
     # calculate how many indexes to go back to get the value from one week ago
-    timesteps_back = 48 * 7
+    timesteps_back = 24 * 7
 
     # loop over each row in the test set
     for i, row in df_tests.iterrows():
@@ -130,8 +130,8 @@ def main():
 
     # split the data
     gap = 24
-    max_train_size = 48 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
-    generator = split_timeseries_data(df['ds'], gap=gap, test_size=48, max_train_size=max_train_size)
+    max_train_size = 24 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
+    generator = split_timeseries_data(df['ds'], gap=gap, test_size=24, max_train_size=max_train_size)
     df_trains, df_tests = get_splits(df, generator)
 
     # fit the mean model

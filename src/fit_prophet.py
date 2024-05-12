@@ -16,7 +16,7 @@ def cv_single_fold(train_ind, test_ind, df, freq):
                         weekly_seasonality = True, 
                         daily_seasonality = True,
                         epochs=50,
-                        batch_size=48,
+                        batch_size=24,
                         learning_rate=0.2,
                         loss_func = "MAE"
                         )
@@ -27,7 +27,7 @@ def cv_single_fold(train_ind, test_ind, df, freq):
     
     return mae_val
 
-def cross_validate(df, data_generator, freq="30min", n_cores:int=1):
+def cross_validate(df, data_generator, freq="1h", n_cores:int=1):
     '''
     function to cross validate the model
     '''
@@ -57,13 +57,13 @@ def main():
 
     # split the data
     gap = 24
-    max_train_size = 48 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
-    generator = split_timeseries_data(df['ds'], gap=gap, test_size=48, max_train_size=max_train_size)
+    max_train_size = 24 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
+    generator = split_timeseries_data(df['ds'], gap=gap, test_size=24, max_train_size=max_train_size)
 
     # cross validate
     print("[INFO:] Cross-validating the model...")
     n_cores = mp.cpu_count() - 1
-    mean_mae, sd_mae = cross_validate(df, generator, freq="30min", n_cores=n_cores)
+    mean_mae, sd_mae = cross_validate(df, generator, freq="1h", n_cores=n_cores)
 
     print(f"Mean MAE: {mean_mae}")
     print(f"SD MAE: {sd_mae}")
