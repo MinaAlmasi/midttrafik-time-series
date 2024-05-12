@@ -2,29 +2,16 @@ import pathlib
 import pandas as pd
 from datetime import datetime, timedelta
 
-def round_up_half_hour(time_str):
-    time_obj = datetime.strptime(time_str, '%H:%M:%S')
-    # Calculate the number of minutes to round up
-    minutes = time_obj.minute
-    if minutes == 0 or minutes == 30:
-        rounded_minutes = minutes
-    elif minutes < 30:
-        rounded_minutes = 30
-    else:
-        time_obj += timedelta(hours=1)
-        rounded_minutes = 0
-    # Return the time rounded up to the nearest half-hour
-    return time_obj.replace(minute=rounded_minutes, second=0).strftime('%H:%M:%S')
 
-def add_missing_time_intervals(df):
+def add_missing_time_intervals(df, freq='1h'):
     # ensure the 'ds' column is datetime
     df['ds'] = pd.to_datetime(df['ds'])
 
     # set 'ds' as the index
     df.set_index('ds', inplace=True)
 
-    # create a date range with 30-minute intervals covering the entire range
-    full_range = pd.date_range(start=df.index.min(), end=df.index.max(), freq='30T')
+    # create a date range with 1 hour frequency
+    full_range = pd.date_range(start=df.index.min(), end=df.index.max(), freq=freq)
 
     # reindex the original DataFrame to the new index, filling missing values with 0
     df_full = df.reindex(full_range, fill_value=0)
@@ -54,8 +41,8 @@ def main():
     # remove duplicates 
     norreport_1A = norreport_1A.drop_duplicates()
 
-    # add aggregate
-    norreport_1A['time_interval'] = norreport_1A['scheduledarrivetime'].apply(round_up_half_hour)
+    # keep only the 'hour' from scheduledtimearrive (HH:MM:SS)
+    norreport_1A['time_interval'] = norreport_1A['scheduledarrivetime'].str.split(':').str[0]
 
     # subset to only relevant columns
     norreport_1A = norreport_1A[['date', 'time_interval', 'Cumulative']]
@@ -74,6 +61,8 @@ def main():
 
     # add missing time intervals
     norreport_1A = add_missing_time_intervals(norreport_1A)
+
+    print(f"Length of the dataset: {len(norreport_1A)}")
 
     # save 
     norreport_1A.to_csv('data/processed_1A_norreport.csv', index=False)
