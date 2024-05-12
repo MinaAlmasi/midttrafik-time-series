@@ -1,8 +1,32 @@
 import pathlib
 import pandas as pd
 from data_utils import split_timeseries_data
+import matplotlib.pyplot as plt
+
+def get_splits(df, data_generator):
+    '''
+    function to cross validate the baseline models
+    '''
+    df_trains = pd.DataFrame()
+    df_tests = pd.DataFrame()
+    for i, (train_ind, test_ind) in enumerate(data_generator):
+        df_train = df.iloc[train_ind]
+        df_test = df.iloc[test_ind]
+
+        # create fold column as the first column
+        df_train.insert(0, 'fold', i)
+        df_test.insert(0, 'fold', i)
+
+        # add to dataframe
+        df_trains = pd.concat([df_trains, df_train], axis=0)
+        df_tests = pd.concat([df_tests, df_test], axis=0)
+    
+    return df_trains, df_tests
 
 def mean_model(df, df_tests):
+    '''
+    Mean model which always predicts the mean of the training set
+    '''
     # remove the test indices from the dataframe
     df_train = df[~df.index.isin(df_tests.index)]
 
@@ -18,7 +42,7 @@ def mean_model(df, df_tests):
 
     return mae
 
-def naive_model(df_trains, df_tests):
+def naive_model(df_trains, df_tests, gap=48):
     '''
     Naive model which always predicts last value in the training set (per fold)
     '''
@@ -30,11 +54,19 @@ def naive_model(df_trains, df_tests):
         # add to the test set
         df_tests.loc[df_tests['fold'] == fold, 'y_pred'] = last_value
 
-    # calculate MAE
-    mae = abs(df_tests['y'] - df_tests['y_pred']).mean()
+    # calculate MAE as a column
+    df_tests['mae'] = abs(df_tests['y'] - df_tests['y_pred'])
+
+    mae = df_tests['mae'].mean()
     mae = round(mae, 3)
 
-    return mae
+    # add horizon col
+    df_tests["horizon"] = df_tests.groupby('fold').cumcount() + gap
+
+    # select mae and horizon for new df 
+    naive_results = df_tests[['mae', 'horizon']]
+
+    return mae, naive_results
 
 def weekly_naive_model(df, df_tests):
     '''
@@ -63,25 +95,30 @@ def weekly_naive_model(df, df_tests):
 
     return mae
 
-def get_splits(df, data_generator):
+def plot_naive_horizon(results, save_path=None, file_name=None):
     '''
-    function to cross validate the model
+    Plot the MAE as a function of the horizon
     '''
-    df_trains = pd.DataFrame()
-    df_tests = pd.DataFrame()
-    for i, (train_ind, test_ind) in enumerate(data_generator):
-        df_train = df.iloc[train_ind]
-        df_test = df.iloc[test_ind]
+    # group by horizon and calculate the mean and sd
+    results = results.groupby('horizon').agg({'mae': ['mean', 'std']}).reset_index()
 
-        # create fold column as the first column
-        df_train.insert(0, 'fold', i)
-        df_test.insert(0, 'fold', i)
+    # plot as a line plot with shaded error
+    plt.figure(figsize=(10, 6))
 
-        # add to dataframe
-        df_trains = pd.concat([df_trains, df_train], axis=0)
-        df_tests = pd.concat([df_tests, df_test], axis=0)
-    
-    return df_trains, df_tests
+    plt.plot(results['horizon'], results['mae']['mean'], color='blue')
+
+    plt.fill_between(results['horizon'],
+                        results['mae']['mean'] - results['mae']['std'],
+                        results['mae']['mean'] + results['mae']['std'],
+                        color='blue', alpha=0.2)
+
+    plt.xlabel('Horizon')
+    plt.ylabel('MAE')
+
+    # save 
+    if save_path and file_name:
+        save_path.mkdir(parents=True, exist_ok=True)
+        plt.savefig(save_path / file_name)
     
 def main(): 
     # set paths
@@ -102,8 +139,11 @@ def main():
     print(f'Mean model MAE: {mae}')
 
     # fit the naive model
-    mae = naive_model(df_trains, df_tests)
+    mae, naive_results = naive_model(df_trains, df_tests)
     print(f'Naive model MAE: {mae}')
+    print(naive_results)
+
+    plot_naive_horizon(naive_results, save_path=path.parents[1] / 'plots', file_name='naive_horizon.png')
 
     # fit the weekly naive model
     mae = weekly_naive_model(df, df_tests)
