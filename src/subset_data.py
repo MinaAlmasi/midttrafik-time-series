@@ -9,7 +9,7 @@ def main():
 
     # data path 
     print("[INFO:] Loading the raw data")
-    data_path = path.parents[2] / "raw_data" / "1A og 2A 2021 til nu.csv"
+    data_path = path.parents[1] / "raw_data" / "1A og 2A 2021 til nu.csv"
 
     # read data
     df = read_data(data_path, chunksize=10000)
