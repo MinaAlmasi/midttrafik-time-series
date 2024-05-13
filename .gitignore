@@ -164,6 +164,7 @@ cython_debug/
 
 # DATA 
 data/*
+raw_data/*
 !data/README.md
 
 # neuralprophet
