@@ -1,15 +1,15 @@
 import pathlib
 import pandas as pd
-from data_utils import split_timeseries_data
+from data_utils import split_rolling_origin
 import matplotlib.pyplot as plt
 
-def get_splits(df, data_generator):
+def get_splits(df, train_inds, test_inds):
     '''
     function to cross validate the baseline models
     '''
     df_trains = pd.DataFrame()
     df_tests = pd.DataFrame()
-    for i, (train_ind, test_ind) in enumerate(data_generator):
+    for i, (train_ind, test_ind) in enumerate(zip(train_inds.values(), test_inds.values())):
         df_train = df.iloc[train_ind]
         df_test = df.iloc[test_ind]
 
@@ -131,9 +131,9 @@ def main():
     # split the data
     gap = 24
     max_train_size = 24 * 7 * 4 # 24 hours x 7 (days) x 2 (weeks)
-    generator = split_timeseries_data(df['ds'], gap=gap, test_size=24, max_train_size=max_train_size)
-    df_trains, df_tests = get_splits(df, generator)
-
+    train_inds, test_inds = split_rolling_origin(df['ds'], gap=gap, test_size=36, steps=4, min_train_size=24*7)
+    df_trains, df_tests = get_splits(df, train_inds, test_inds)
+    
     # fit the mean model
     mae = mean_model(df, df_tests)
     print(f'Mean model MAE: {mae}')
@@ -141,7 +141,6 @@ def main():
     # fit the naive model
     mae, naive_results = naive_model(df_trains, df_tests)
     print(f'Naive model MAE: {mae}')
-    print(naive_results)
 
     plot_naive_horizon(naive_results, save_path=path.parents[1] / 'plots', file_name='naive_horizon.png')
 
