@@ -39,6 +39,44 @@ def split_timeseries_data(X, gap:int=48, test_size:int=48, max_train_size:int=10
 
     return data_generator
 
+def split_timeseries_data_rolling_origin(X, gap:int=24, test_size:int=36, steps:int=1):
+    '''
+    function to split the data into n_splits using TimeSeriesSplit
+    '''
+    # identify the length of a full fold
+    fold_length = gap + test_size
+
+    # subtract from length of data to get the number of folds
+    n_splits = (int(len(X) - fold_length) // test_size)
+
+    tscv = TimeSeriesSplit(
+        n_splits=n_splits,
+        gap=gap,
+        test_size=test_size,
+    )
+    # create a generator object
+    data_generator = tscv.split(X)
+
+    # create lists of lists for train and test indices
+    train_inds = {}
+    test_inds = {}
+
+    # iterate over the generator object
+    for i, (train_ind, test_ind) in enumerate(data_generator):
+        train_inds[i] = train_ind
+        test_inds[i] = test_ind
+
+    # compute step_size for rolling origin
+    step_size = steps * test_size
+    print(f"[INFO:] Step size for rolling origin: {step_size}")
+
+    # subset the key according to step_size i.e., if steps = 4, keep every 4th key e..g, 0, 4, 8, 12, ...
+    train_inds = {k: v for k, v in train_inds.items() if k % steps == 0}
+    test_inds = {k: v for k, v in test_inds.items() if k % steps == 0}
+
+    print("Number of folds for rolling origin:", len(train_inds))
+
+    return train_inds, test_inds
 
 def main(): 
     # set paths
@@ -50,14 +88,15 @@ def main():
 
     # split the data
     gap = 24
-    max_train_size = 48 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
-    generator = split_timeseries_data(df['ds'], gap=gap, test_size=48, max_train_size=max_train_size)
+    max_train_size = 24 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
+    #generator = split_timeseries_data(df['ds'], gap=gap, test_size=48, max_train_size=max_train_size)
+    train_inds, test_inds = split_timeseries_data_rolling_origin(df['ds'], gap=gap, test_size=36, steps=2)
+
+    print(train_inds.keys())
+
     
-    for i, (train_ind, test_ind) in enumerate(generator):
-        if i == 0 or i == 1:
-            print(f"Fold: {i}")
-            print(f"Train: {train_ind}")
-            print(f"Test: {test_ind}")
+    
+    
 
 if __name__ == "__main__":
     main()
