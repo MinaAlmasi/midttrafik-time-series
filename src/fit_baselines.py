@@ -130,7 +130,7 @@ def main():
 
     # split the data
     gap = 24
-    max_train_size = 24 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
+    max_train_size = 24 * 7 * 4 # 24 hours x 7 (days) x 2 (weeks)
     generator = split_timeseries_data(df['ds'], gap=gap, test_size=24, max_train_size=max_train_size)
     df_trains, df_tests = get_splits(df, generator)
 

@@ -78,7 +78,7 @@ def main():
             
             # Split the data
             gap = 24
-            max_train_size = 24 * 7 * 2
+            max_train_size = 24 * 7 * 4
             generator = split_timeseries_data(df['ds'], gap=gap, test_size=24, max_train_size=max_train_size)
             
             mean_mae, sd_mae = cross_validate(df, generator, init_params, fit_params, freq="1h", n_cores=mp.cpu_count() - 1)
