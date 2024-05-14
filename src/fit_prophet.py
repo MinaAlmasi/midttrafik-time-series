@@ -31,7 +31,8 @@ def cross_validate(df, data_generator, init_params, fit_params, freq="1h", n_cor
     for train_ind, test_ind in data_generator:
         args = (train_ind, test_ind, df, init_params, fit_params, freq)
         processes.append(args)
-
+    
+    print(f"Starting {processes} processes with {n_cores} cores...")
     with mp.Pool(n_cores) as pool:
         results = pool.starmap(cv_single_fold, processes)
 
@@ -44,11 +45,6 @@ def main():
     path = pathlib.Path(__file__)
     data_path = path.parents[1] / 'data'
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
-
-    # Split the data
-    gap = 24
-    max_train_size = 24 * 7 * 2
-    generator = split_timeseries_data(df['ds'], gap=gap, test_size=24, max_train_size=max_train_size)
 
     # Define the grid of hyperparameters to explore
     init_param_grid = {
@@ -79,6 +75,12 @@ def main():
     for init_params in sampled_init_combinations:
         for fit_params in sampled_fit_combinations:
             print("[INFO] Testing parameters:", init_params, fit_params)
+            
+            # Split the data
+            gap = 24
+            max_train_size = 24 * 7 * 2
+            generator = split_timeseries_data(df['ds'], gap=gap, test_size=24, max_train_size=max_train_size)
+            
             mean_mae, sd_mae = cross_validate(df, generator, init_params, fit_params, freq="1h", n_cores=mp.cpu_count() - 1)
             print(f"Results for parameters {init_params} and {fit_params}: Mean MAE = {mean_mae}, SD MAE = {sd_mae}")
             if mean_mae < best_mae:
