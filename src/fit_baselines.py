@@ -3,46 +3,59 @@ import pandas as pd
 from data_utils import split_rolling_origin
 import matplotlib.pyplot as plt
 
-def get_splits(df, train_inds, test_inds):
+def get_splits(df, train_inds, val_inds, test_inds):
     '''
-    function to cross validate the baseline models
+    get the train, val and test splits from df and splitted indices
+
+    Args:
+        df: data 
+        train_inds, val_inds: dictionary with indices for train and val across folds
+        test_inds: indices for a HOLDOUT test set
+    
+    Returns:
+        df_trains, df_vals, df_test: dataframes with train, val and test splits
     '''
     df_trains = pd.DataFrame()
-    df_tests = pd.DataFrame()
-    for i, (train_ind, test_ind) in enumerate(zip(train_inds.values(), test_inds.values())):
+    df_vals = pd.DataFrame()
+    for i, (train_ind, test_ind) in enumerate(zip(train_inds.values(), val_inds.values())):
         df_train = df.iloc[train_ind]
-        df_test = df.iloc[test_ind]
+        df_val = df.iloc[test_ind]
 
         # create fold column as the first column
         df_train.insert(0, 'fold', i)
-        df_test.insert(0, 'fold', i)
+        df_val.insert(0, 'fold', i)
 
         # add to dataframe
         df_trains = pd.concat([df_trains, df_train], axis=0)
-        df_tests = pd.concat([df_tests, df_test], axis=0)
-    
-    return df_trains, df_tests
+        df_vals = pd.concat([df_vals, df_val], axis=0)
 
-def mean_model(df, df_tests):
+    # create test df 
+    df_test = df.iloc[test_inds]
+    
+    return df_trains, df_vals, df_test
+
+def mean_model(df, df_vals, df_test):
     '''
     Mean model which always predicts the mean of the training set
     '''
-    # remove the test indices from the dataframe
-    df_train = df[~df.index.isin(df_tests.index)]
+    # remove the test indices from 
+    df_train_val = df[~df.index.isin(df_test.index)] # df_train val WIRHOUT rolling origin 
 
     # calculate the mean
-    mean = df_train['y'].mean()
+    mean = df_train_val['y'].mean()
 
-    # add as a column to the test dataframe
-    df_tests['y_pred'] = mean
+    mae_values = {}
+    for split, df in zip(["val", "test"], [df_vals, df_test]):
+        df['y_pred'] = mean # add mean to pred col
 
-    # calculate MAE
-    mae = abs(df_tests['y'] - df_tests['y_pred']).mean()
-    mae = round(mae, 3)
+        mae = abs(df['y'] - df['y_pred']).mean() # compute mae 
+        mae = round(mae, 3)
 
-    return mae
+        mae_values[split] = mae
 
-def naive_model(df_trains, df_tests, gap=24):
+    return mae_values
+
+def naive_model(df_trains, df_vals, gap=24):
     '''
     Naive model which always predicts last value in the training set (per fold)
     '''
@@ -52,23 +65,23 @@ def naive_model(df_trains, df_tests, gap=24):
         last_value = df_trains[df_trains['fold'] == fold].iloc[-1]['y']
 
         # add to the test set
-        df_tests.loc[df_tests['fold'] == fold, 'y_pred'] = last_value
+        df_vals.loc[df_vals['fold'] == fold, 'y_pred'] = last_value
 
     # calculate MAE as a column
-    df_tests['mae'] = abs(df_tests['y'] - df_tests['y_pred'])
+    df_vals['mae'] = abs(df_vals['y'] - df_vals['y_pred'])
 
-    mae = df_tests['mae'].mean()
+    mae = df_vals['mae'].mean()
     mae = round(mae, 3)
 
     # add horizon col
-    df_tests["horizon"] = df_tests.groupby('fold').cumcount() + gap
+    df_vals["horizon"] = df_vals.groupby('fold').cumcount() + gap
 
     # select mae and horizon for new df 
-    naive_results = df_tests[['mae', 'horizon']]
+    naive_results = df_vals[['mae', 'horizon']]
 
     return mae, naive_results
 
-def weekly_naive_model(df, df_tests):
+def weekly_naive_model(df, df_vals):
     '''
     Seasonal naive model which predicts the value from the same time one week ago
     '''
@@ -76,7 +89,7 @@ def weekly_naive_model(df, df_tests):
     timesteps_back = 24 * 7
 
     # loop over each row in the test set
-    for i, row in df_tests.iterrows():
+    for _, row in df_vals.iterrows():
         # get the index of the row
         index = row.name
 
@@ -87,10 +100,10 @@ def weekly_naive_model(df, df_tests):
         value_week_ago = df.loc[index_week_ago, 'y']
 
         # add to the test set
-        df_tests.loc[index, 'y_pred'] = value_week_ago
+        df_vals.loc[index, 'y_pred'] = value_week_ago
     
     # calculate MAE
-    mae = abs(df_tests['y'] - df_tests['y_pred']).mean()
+    mae = abs(df_vals['y'] - df_vals['y_pred']).mean()
     mae = round(mae, 3)
 
     return mae
@@ -130,22 +143,21 @@ def main():
 
     # split the data
     gap = 24
-    max_train_size = 24 * 7 * 4 # 24 hours x 7 (days) x 2 (weeks)
-    train_inds, test_inds = split_rolling_origin(df['ds'], gap=gap, test_size=36, steps=4, min_train_size=24*7)
-    df_trains, df_tests = get_splits(df, train_inds, test_inds)
+    train_inds, val_inds, test_inds = split_rolling_origin(df['ds'], gap=gap, test_size=36, steps=4, min_train_size=24*7)
+    df_trains, df_vals, df_test = get_splits(df, train_inds, val_inds, test_inds)
     
     # fit the mean model
-    mae = mean_model(df, df_tests)
+    mae = mean_model(df, df_vals, df_test)
     print(f'Mean model MAE: {mae}')
 
     # fit the naive model
-    mae, naive_results = naive_model(df_trains, df_tests)
+    mae, naive_results = naive_model(df_trains, df_vals)
     print(f'Naive model MAE: {mae}')
 
     plot_naive_horizon(naive_results, save_path=path.parents[1] / 'plots', file_name='naive_horizon.png')
 
     # fit the weekly naive model
-    mae = weekly_naive_model(df, df_tests)
+    mae = weekly_naive_model(df, df_vals)
     print(f'Weekly naive model MAE: {mae}')
 
 
