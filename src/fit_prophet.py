@@ -114,9 +114,9 @@ def main():
         'epochs': [1],
     }
 
-
     # sample parameter combinations
-    n_param_combinations = 5
+    random.seed(2502)
+    n_param_combinations = 64
     sampled_combinations = sample_parameter_combinations(n_param_combinations, param_grid)
 
     # data setup
