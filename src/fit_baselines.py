@@ -55,10 +55,11 @@ def mean_model(df, df_vals, df_test):
 
     return mae_values
 
-def naive_model(df_trains, df_vals, gap=24):
+def naive_model(df_trains, df_vals, df_tests, gap=24):
     '''
     Naive model which always predicts last value in the training set (per fold)
     '''
+
     # for each fold, identify the last value in the training set
     for fold in df_trains['fold'].unique():
         # get the last value in the training set
@@ -70,8 +71,8 @@ def naive_model(df_trains, df_vals, gap=24):
     # calculate MAE as a column
     df_vals['mae'] = abs(df_vals['y'] - df_vals['y_pred'])
 
-    mae = df_vals['mae'].mean()
-    mae = round(mae, 3)
+    val_mae = df_vals['mae'].mean()
+    val_mae = round(val_mae, 3)
 
     # add horizon col
     df_vals["horizon"] = df_vals.groupby('fold').cumcount() + gap
@@ -79,9 +80,22 @@ def naive_model(df_trains, df_vals, gap=24):
     # select mae and horizon for new df 
     naive_results = df_vals[['mae', 'horizon']]
 
-    return mae, naive_results
+    # for the test set, we simply predict the last value in the training set overall
+    last_value = df_trains.iloc[-1]['y']
 
-def weekly_naive_model(df, df_vals):
+    df_tests['y_pred'] = last_value
+
+    # calculate MAE
+    df_tests['mae'] = abs(df_tests['y'] - df_tests['y_pred'])
+    train_mae = df_tests['mae'].mean()
+    train_mae = round(train_mae, 3)
+
+    # create a dict with the MAE values
+    mae_values = {'val': val_mae, 'test': train_mae}
+
+    return mae_values, naive_results
+
+def weekly_naive_model(df, df_vals, df_test):
     '''
     Seasonal naive model which predicts the value from the same time one week ago
     '''
@@ -101,12 +115,25 @@ def weekly_naive_model(df, df_vals):
 
         # add to the test set
         df_vals.loc[index, 'y_pred'] = value_week_ago
-    
-    # calculate MAE
-    mae = abs(df_vals['y'] - df_vals['y_pred']).mean()
-    mae = round(mae, 3)
 
-    return mae
+    # calculate MAE
+    val_mae = abs(df_vals['y'] - df_vals['y_pred']).mean()
+    val_mae = round(val_mae, 3)
+
+    # repeat the process for the test set
+    for _, row in df_test.iterrows():
+        index = row.name
+        index_week_ago = index - timesteps_back
+        value_week_ago = df.loc[index_week_ago, 'y']
+        df_test.loc[index, 'y_pred'] = value_week_ago
+    
+    test_mae = abs(df_test['y'] - df_test['y_pred']).mean()
+    test_mae = round(test_mae, 3)
+
+    # add to one dict
+    mae_values = {'val': val_mae, 'test': test_mae}
+
+    return mae_values
 
 def plot_naive_horizon(results, save_path=None, file_name=None):
     '''
@@ -147,18 +174,21 @@ def main():
     df_trains, df_vals, df_test = get_splits(df, train_inds, val_inds, test_inds)
     
     # fit the mean model
-    mae = mean_model(df, df_vals, df_test)
-    print(f'Mean model MAE: {mae}')
+    mean_model_mae = mean_model(df, df_vals, df_test)
 
     # fit the naive model
-    mae, naive_results = naive_model(df_trains, df_vals)
-    print(f'Naive model MAE: {mae}')
+    naive_mae, naive_results = naive_model(df_trains, df_vals, df_test)
 
     plot_naive_horizon(naive_results, save_path=path.parents[1] / 'plots', file_name='naive_horizon.png')
 
     # fit the weekly naive model
-    mae = weekly_naive_model(df, df_vals)
-    print(f'Weekly naive model MAE: {mae}')
+    weekly_naive_mae = weekly_naive_model(df, df_vals, df_test)
+    
+    # print the results
+    print("\n")
+    print(f'Mean model MAE: {mean_model_mae}')
+    print(f'Naive model MAE: {naive_mae}')
+    print(f'Weekly naive model MAE: {weekly_naive_mae}')
 
 
 if __name__ == "__main__":
