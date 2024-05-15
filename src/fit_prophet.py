@@ -104,7 +104,7 @@ def main():
 
     # hyperparameters to explore
     param_grid = {
-        'n_lags': [1, 6],
+        'n_lags': [1, 12],
         'newer_samples_weight': [2, 4],
         'ar_layers': [[1], [32, 16]],
         'seasonality_reg': [0.1, 0.5],
