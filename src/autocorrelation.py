@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 def plot_autocorrelation(data, plot_dir):
      # create autocorrelation plot
-    n_lags = 48 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
+    n_lags = 24 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
 
     print("[INFO:] Creating autocorrelation plot")
     fig, ax = plt.subplots(figsize=(24, 6)) 
@@ -30,7 +30,27 @@ def plot_autocorrelation(data, plot_dir):
 
 
 def plot_partial_autocorrelation(data, plot_dir):
-    pass
+    # create partial autocorrelation plot
+    n_lags = 24 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
+
+    print("[INFO:] Creating partial autocorrelation plot")
+    fig, ax = plt.subplots(figsize=(24, 6)) 
+    pacf_plot = plot_pacf(data["y"], lags=n_lags, zero=False, ax=ax) # markersize = 1, linewidth = 0.5 (could be added)
+
+    # change axis tick values from lags to hours 
+    xticks = ax.get_xticks()
+    ax.set_xticks(xticks)
+    ax.set_xticklabels([int(xtick)/2 for xtick in xticks])
+    ax.set_xlim(0, n_lags)
+
+    # labels
+    ax.set_title('')  
+    ax.set_xlabel('Hours')  
+    ax.set_ylabel('Partial Autocorrelation') 
+
+    # rm whitespace
+    fig.tight_layout()
+    fig.savefig(plot_dir / "norreport_1A_partial_autocorrelation.png", dpi=300)
 
 def main():
     # set paths
@@ -41,8 +61,11 @@ def main():
     # load data
     data = pd.read_csv(data_dir / "processed_1A_norreport.csv")
 
-    # plot autocorrelation
+    # plots
     plot_autocorrelation(data, plot_dir)
+
+    plot_partial_autocorrelation(data, plot_dir)
+
 
    
 

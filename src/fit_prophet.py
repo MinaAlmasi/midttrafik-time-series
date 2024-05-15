@@ -31,9 +31,11 @@ def cv_single_fold(train_ind, test_ind, df, params, freq):
 
     # get last MAE from training and (only) MAE from validation
     mae_train = train_metrics['MAE'].values[-1]
+    rmse_train = train_metrics['RMSE'].values[-1]
     mae_val = val_metrics['MAE_val'].values[0]
+    rmse_val = val_metrics['RMSE_val'].values[0]
     
-    return mae_train, mae_val
+    return mae_train, mae_val, rmse_train, rmse_val
 
 def get_mean_sd(vals:list):
     '''
@@ -47,11 +49,6 @@ def get_mean_sd(vals:list):
 def sample_parameter_combinations(n_combinations, param_grid):
     # Create a list of all possible combinations from the parameter grid
     all_combinations = list(ParameterGrid(param_grid))
-
-    # check if n_combinations is larger than the number of possible combinations
-    if n_combinations > len(all_combinations):
-        print("Warning: Requested more combinations than possible. Returning all combinations.")
-        sampled_combinations = all_combinations
     
     # Sample n_combinations from the list, ensuring not to exceed the number of available combinations
     if len(all_combinations) < n_combinations:
@@ -81,9 +78,7 @@ def cross_validate(df, train_inds:dict, test_inds:dict, params:dict, freq="1h", 
         n_cores: number of cores to use for parallel processing
 
     Returns:
-        mean_mae: mean MAE across all folds
-        sd_mae: standard deviation of the MAE across all folds
-        
+        metrics: dict with mean and standard deviation of the MAE and RMSE
     '''
     processes = []
     for (train_ind, test_ind) in zip(train_inds.values(), test_inds.values()):
@@ -91,12 +86,16 @@ def cross_validate(df, train_inds:dict, test_inds:dict, params:dict, freq="1h", 
         processes.append(args)
     
     with mp.Pool(n_cores) as pool:
-        mae_trains, mae_vals = zip(*pool.starmap(cv_single_fold, processes)) # unpack results
+        mae_trains, mae_vals, rmse_trains, rmse_vals = zip(*pool.starmap(cv_single_fold, processes)) # unpack results
 
-    mean_mae_train, sd_mae_train = get_mean_sd(mae_trains)
-    mean_mae_val, sd_mae_val = get_mean_sd(mae_vals)
+    # calculate mean and standard deviation of the results
+    metrics = {}
+    metrics["mean_mae_train"], metrics["sd_mae_train"] = get_mean_sd(mae_trains)
+    metrics["mean_mae_val"], metrics["sd_mae_val"] = get_mean_sd(mae_vals)
+    metrics["mean_rmse_train"], metrics["sd_rmse_train"] = get_mean_sd(rmse_trains)
+    metrics["mean_rmse_val"], metrics["sd_rmse_val"] = get_mean_sd(rmse_vals)
 
-    return mean_mae_train, sd_mae_train, mean_mae_val, sd_mae_val
+    return metrics
 
 def main():
     path = pathlib.Path(__file__)
@@ -105,13 +104,13 @@ def main():
 
     # hyperparameters to explore
     param_grid = {
-        'n_lags': [1, 6],
+        'n_lags': [1, 12],
         'newer_samples_weight': [2, 4],
         'ar_layers': [[1], [32, 16]],
         'seasonality_reg': [0.1, 0.5],
         'learning_rate': [0.15, 0.3],
         'batch_size': [24, 48],
-        'epochs': [1],
+        'epochs': [50, 100],
     }
 
     # sample parameter combinations
@@ -136,16 +135,20 @@ def main():
     results = []
     # cross-validation for each sampled parameter set
     for i, params in enumerate(sampled_combinations):
-        mean_mae_train, sd_mae_train, mean_mae_val, sd_mae_val = cross_validate(df, train_inds, val_inds, params, freq="1h", n_cores=mp.cpu_count() - 1)
+        metrics = cross_validate(df, train_inds, val_inds, params, freq="1h", n_cores=mp.cpu_count() - 1)
         
         # Add the results to the DataFrame
         results.append({
             'model_number': i+1,
             'parameters': params,
-            'mean_mae_train': mean_mae_train,
-            'sd_mae_train': sd_mae_train,
-            'mean_mae_val': mean_mae_val,
-            'sd_mae_val': sd_mae_val
+            'mean_mae_train': metrics["mean_mae_train"],
+            'sd_mae_train': metrics["sd_mae_train"],
+            'mean_mae_val': metrics["mean_mae_val"],
+            'sd_mae_val': metrics["sd_mae_val"],
+            'mean_rmse_train': metrics["mean_rmse_train"],
+            'sd_rmse_train': metrics["sd_rmse_train"],
+            'mean_rmse_val': metrics["mean_rmse_val"],
+            'sd_rmse_val': metrics["sd_rmse_val"]
         })
         
         # convert results to DataFrame and append to file after each iteration
