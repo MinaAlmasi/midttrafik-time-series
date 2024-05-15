@@ -19,7 +19,10 @@ def cv_single_fold(train_ind, test_ind, df, params, freq):
         "yearly_seasonality": False, # set yearly seasonality also to avoid model having to check for it 
         'weekly_seasonality': True,
         'daily_seasonality': True,
-        'newer_samples_start': 0.5
+        'newer_samples_start': 0.5,
+        'impute_missing': True,
+        'impute_linear': 10, # default value
+        'impute_rolling': 10 # default value
     }
     all_params = {**default_params, **params}
 
@@ -110,7 +113,7 @@ def main():
         'seasonality_reg': [0.1, 0.5],
         'learning_rate': [0.15, 0.3],
         'batch_size': [24, 48],
-        'epochs': [50, 100],
+        'epochs': [1],
     }
 
     # sample parameter combinations
