@@ -9,7 +9,7 @@ def main():
 
     # data path 
     print("[INFO:] Loading the raw data")
-    data_path = path.parents[1] / "raw_data" / "1A og 2A 2021 til nu.csv"
+    data_path = path.parents[2] / "raw_data" / "1A og 2A 2021 til nu.csv"
 
     # read data
     df = read_data(data_path, chunksize=10000)
@@ -52,7 +52,7 @@ def main():
 
     # save filtered 1a kolt 
     print("[INFO:] Saving filtered 1A from Kolt to CSV")
-    df_1A_filtered.to_csv(path.parents[1] / "data" / "1A_from_kolt_filtered.csv", index=False)
+    df_1A_filtered.to_csv(path.parents[2] / "data" / "1A_from_kolt_filtered.csv", index=False)
 
     ## STOP NUMBER ##
     # save only stop number = 751301201 (Nørreport)
@@ -63,7 +63,7 @@ def main():
     print(norreport_1A.head())
 
     # save as CSV 
-    norreport_1A.to_csv(path.parents[1] / "data" / "1A_norreport.csv", index=False)
+    norreport_1A.to_csv(path.parents[2] / "data" / "1A_norreport.csv", index=False)
 
 if __name__ == "__main__":
     main()
