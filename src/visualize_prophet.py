@@ -15,13 +15,13 @@ def main():
 
     # init neural prophet model
     model = NeuralProphet(
-                        yearly_seasonality = True,  
+                        yearly_seasonality = False,  
                         weekly_seasonality = True, 
                         daily_seasonality = True
                         )
 
     # fit the model with 30-minute frequency
-    metrics = model.fit(norreport_1A, freq='30min')
+    metrics = model.fit(norreport_1A, freq='1H')
 
     print(metrics)
 
