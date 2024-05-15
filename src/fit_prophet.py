@@ -5,7 +5,7 @@ from neuralprophet import NeuralProphet
 from sklearn.model_selection import ParameterGrid
 import random
 from data_utils import split_rolling_origin
-import math
+from datetime import datetime
 
 def cv_single_fold(train_ind, test_ind, df, params, freq):
     '''
@@ -109,7 +109,7 @@ def main():
         'newer_samples_weight': [2, 4],
         'ar_layers': [[1], [32, 16]],
         'seasonality_reg': [0.1, 0.5],
-        'learning_rate': [0.05, 0.15, 0.3],
+        'learning_rate': [0.15, 0.3],
         'batch_size': [24, 48],
         'epochs': [1],
     }
@@ -127,24 +127,33 @@ def main():
 
     train_inds, val_inds, _ = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size) # no need for test_inds here!
 
+    # Setup results path and unique filename
+    results_dir = path.parents[1] / "results" / "neuralprophet"
+    results_dir.mkdir(exist_ok=True, parents=True)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = results_dir / f'np_gridsearch_{timestamp}.csv'
+
     results = []
     # cross-validation for each sampled parameter set
-    for params in sampled_combinations:
+    for i, params in enumerate(sampled_combinations):
         mean_mae_train, sd_mae_train, mean_mae_val, sd_mae_val = cross_validate(df, train_inds, val_inds, params, freq="1h", n_cores=mp.cpu_count() - 1)
-            
-        # add the results to the DataFrame
+        
+        # Add the results to the DataFrame
         results.append({
+            'model_number': i+1,
             'parameters': params,
             'mean_mae_train': mean_mae_train,
             'sd_mae_train': sd_mae_train,
             'mean_mae_val': mean_mae_val,
             'sd_mae_val': sd_mae_val
         })
-
-    results_df = pd.DataFrame(results)
-    results_dir = path.parents[1] / 'results'
-    results_dir.mkdir(exist_ok=True, parents=True)
-    results_df.to_csv(results_dir / 'neuralprophet_cv_gridsearch.csv', index=False)
+        
+        # convert results to DataFrame and append to file after each iteration
+        results_df = pd.DataFrame([results[-1]])  # create a DataFrame of the latest results
+        if not filename.exists():  # write header only if file doesn't exist yet
+            results_df.to_csv(filename, index=False, mode='a')
+        else:
+            results_df.to_csv(filename, index=False, mode='a', header=False)
 
 if __name__ == "__main__":
     main()
