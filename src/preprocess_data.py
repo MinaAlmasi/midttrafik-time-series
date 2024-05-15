@@ -67,15 +67,5 @@ def main():
     # save 
     norreport_1A.to_csv('data/processed_1A_norreport.csv', index=False)
 
-    # subset to only first 1000 rows
-    norreport_1A = norreport_1A.head(10000)
-
-    # plot the timeseries for Cumulative
-    ts_plot = norreport_1A.plot(x="ds", y="y", figsize=(25,10))
-
-    # save to plot dir
-    ts_plot.get_figure().savefig(plot_dir / "norreport_1A_ts.png")
-
-
 if __name__ == "__main__":
     main()
