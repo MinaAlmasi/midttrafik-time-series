@@ -1,25 +1,15 @@
 import pandas as pd
 import numpy as np
 import pathlib
-from statsmodels.tsa.stattools import kpss
+from pmdarima.arima.utils import ndiffs, nsdiffs
 
-def kpss_test(timeseries):
-    '''
-    Perform KPSS to test for stationarity: 
-        Null Hypothesis: The process is trend stationary.
-        Alternate Hypothesis: The series has a unit root (series is not stationary)
+def plot_timeseries(df, y, figsize:tuple=(40,10), ylim:tuple=(0,75), save_path=None, save_file=None, **kwargs):
+    ts_plot = df.plot(x="ds", y=y, figsize=figsize, ylim=ylim, **kwargs)
 
-    Function from https://www.statsmodels.org/dev/examples/notebooks/generated/stationarity_detrending_adf_kpss.html
-    '''
-    print("Results of KPSS Test:")
-    kpsstest = kpss(timeseries, regression="c", nlags="auto")
-    kpss_output = pd.Series(
-        kpsstest[0:3], index=["Test Statistic", "p-value", "Lags Used"]
-    )
-    for key, value in kpsstest[3].items():
-        kpss_output["Critical Value (%s)" % key] = value
-    print(kpss_output)
-
+    if save_path and save_file:
+        ts_plot.get_figure().savefig(save_path / save_file)
+    
+    return ts_plot
 
 def main():
     # set paths
@@ -35,14 +25,26 @@ def main():
     df = df.iloc[:-(test_size+gap)]
 
     # fill out missing values with 0
-    df['y'] = df['y'].fillna(0)
+    #df['y'] = df['y'].fillna(0)
 
-    # check for stationarity
-    print('KPSS test for stationarity')
-    output = kpss_test(df['y'])
-    
-    print(output)
+    # check how many differences are needed to make the data stationary (d)
+    d = ndiffs(df['y'], test='kpss')
+    print(f"Number of differences needed to make the data stationary (d): {d}")
 
+    # estimate seasonal differencing term (D)
+    D = nsdiffs(df['y'], m=24, test='ocsb')
+    print(f"Seasonal differencing term (D): {D}")
+
+    # differencing the data according to d and D
+    df['y_diff'] = df['y'].diff(d)
+
+    # create another plot that is zoomed into the last two month (24 hours x 30 days * 2 months)
+    df_recent = df.tail(2*24*30)
+    plot_timeseries(df_recent, y="y_diff", figsize=(25,10), ylim=(0,70), save_path=plot_dir, save_file="norreport_1A_ts_recent.png")
+
+    # create another that is just the last two days
+    df_two_days = df.tail(2*24)
+    plot_timeseries(df_two_days, y="y_diff", figsize=(15,10), ylim=(0,60), save_path=plot_dir, save_file="norreport_1A_ts_two_days.png", linewidth=2)
 
 if __name__ == '__main__':
     main()
