@@ -24,7 +24,7 @@ def kpss_test(timeseries):
 def main():
     # set paths
     path = pathlib.Path(__file__)
-    data_path = path.parents[1] / 'data'
+    data_path = path.parents[2] / 'data'
 
     # load the data
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
@@ -34,9 +34,12 @@ def main():
     gap = 24
     df = df.iloc[:-(test_size+gap)]
 
+    # fill out missing values with 0
+    df['y'] = df['y'].fillna(0)
+
     # check for stationarity
     print('KPSS test for stationarity')
-    output = kpss_test(df['ds'])
+    output = kpss_test(df['y'])
     
     print(output)
 
