@@ -21,17 +21,19 @@ def main():
     test_size = 36 # hours 
     min_train_size = 24*7 # i.e. 1 week 
 
+    # split the data, use only train
+    train_inds, _, _ = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size)
 
-    # split the data into train and test
-    train_inds, val_inds, _ = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size)
-
-    # iterate over each fold
-    for (train_ind, val_ind) in zip(train_inds.values(), val_inds.values()):
-        # fit an ARIMA model
-        model = auto_arima(df['y'].iloc[train_ind], seasonal=True, m=24)
-
-        print(model.summary())
+    # get the last value in the train_inds (last fold in rolling origin)
+    last_train_inds = list(train_inds.values())[-1]
     
+    # get the training data correpsonding to the last train_inds
+    train_data = df.iloc[last_train_inds]
+    
+    # use auto_arima to find the best model (d and D are set based on values found in stationarity.py)
+    model = auto_arima(train_data['y'], seasonal=True, m=24, d=1, D=0, stepwise=True, stationary=False, test="kpss", trace=3)
+
+    print(model.summary())
     
 if __name__ == "__main__":
     main()
