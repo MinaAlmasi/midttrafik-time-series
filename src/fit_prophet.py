@@ -113,7 +113,7 @@ def main():
         'seasonality_reg': [0.1, 0.5],
         'learning_rate': [0.15, 0.3],
         'batch_size': [24, 48],
-        'epochs': [1],
+        'epochs': [40, 80],
     }
 
     # sample parameter combinations
@@ -143,7 +143,7 @@ def main():
         # Add the results to the DataFrame
         results.append({
             'model_number': i+1,
-            'parameters': params,
+            'model': params,
             'mean_mae_train': metrics["mean_mae_train"],
             'sd_mae_train': metrics["sd_mae_train"],
             'mean_mae_val': metrics["mean_mae_val"],
