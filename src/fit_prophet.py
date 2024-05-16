@@ -7,12 +7,12 @@ import random
 from data_utils import split_rolling_origin
 from datetime import datetime
 
-def cv_single_fold(train_ind, test_ind, df, params, freq):
+def cv_single_fold(train_ind, val_ind, df, params, freq):
     '''
     Process a single fold of cross-validation using provided parameters.
     '''
     df_train = df.iloc[train_ind]
-    df_test = df.iloc[test_ind]
+    df_val = df.iloc[val_ind]
     
     # combine init and default parameters
     default_params = {
@@ -30,7 +30,7 @@ def cv_single_fold(train_ind, test_ind, df, params, freq):
     model = NeuralProphet(**all_params)
 
     train_metrics = model.fit(df_train, freq=freq)
-    val_metrics = model.test(df_test, verbose=False)
+    val_metrics = model.test(df_val, verbose=False)
 
     # get last MAE from training and (only) MAE from validation
     mae_train = train_metrics['MAE'].values[-1]
@@ -69,7 +69,7 @@ def sample_parameter_combinations(n_combinations, param_grid):
 
     return sampled_combinations
 
-def cross_validate(df, train_inds:dict, test_inds:dict, params:dict, freq="1h", n_cores:int=1):
+def cross_validate(df, train_inds:dict, val_inds:dict, params:dict, freq="1h", n_cores:int=1):
     '''
     Cross validate the model with given hyperparameters using multiprocessing.
 
@@ -84,8 +84,8 @@ def cross_validate(df, train_inds:dict, test_inds:dict, params:dict, freq="1h", 
         metrics: dict with mean and standard deviation of the MAE and RMSE
     '''
     processes = []
-    for (train_ind, test_ind) in zip(train_inds.values(), test_inds.values()):
-        args = (train_ind, test_ind, df, params, freq)
+    for (train_ind, val_ind) in zip(train_inds.values(), val_inds.values()):
+        args = (train_ind, val_ind, df, params, freq)
         processes.append(args)
     
     with mp.Pool(n_cores) as pool:
