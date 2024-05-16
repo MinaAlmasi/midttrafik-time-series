@@ -5,9 +5,16 @@ from statsmodels.tsa.stattools import pacf
 import matplotlib.pyplot as plt
 
 
-def plot_autocorrelation(data, plot_dir):
-     # create autocorrelation plot
-    n_lags = 24 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
+def plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrelation.png", save_dir=pathlib.Path(__file__).parents[1] / "plots"):
+    '''
+    Plot autocorrelation of time series data
+
+    Args
+        data: dataframe
+        n_lags: int, number of lags to include in the plot (defaults to 2 weeks i.e., 24*7*2)
+        save_dir: path to save the plot
+        file_name: name of the file to save the plot as
+    '''
 
     print("[INFO:] Creating autocorrelation plot")
     fig, ax = plt.subplots(figsize=(24, 6)) 
@@ -26,12 +33,11 @@ def plot_autocorrelation(data, plot_dir):
 
     # rm whitespace
     fig.tight_layout()
-    fig.savefig(plot_dir / "norreport_1A_autocorrelation.png", dpi=300)  
+    save_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(save_dir / file_name, dpi=300)  
 
 
-def plot_partial_autocorrelation(data, plot_dir):
-    # create partial autocorrelation plot
-    n_lags = 24 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
+def plot_partial_autocorrelation(data, n_lags, file_name="norreport_1A_partial_autocorrelation.png", save_dir=pathlib.Path(__file__).parents[1] / "plots"):
 
     print("[INFO:] Creating partial autocorrelation plot")
     fig, ax = plt.subplots(figsize=(24, 6)) 
@@ -50,7 +56,8 @@ def plot_partial_autocorrelation(data, plot_dir):
 
     # rm whitespace
     fig.tight_layout()
-    fig.savefig(plot_dir / "norreport_1A_partial_autocorrelation.png", dpi=300)
+    save_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(save_dir / file_name, dpi=300)
 
 def main():
     # set paths
@@ -61,10 +68,13 @@ def main():
     # load data
     data = pd.read_csv(data_dir / "processed_1A_norreport.csv")
 
-    # plots
-    plot_autocorrelation(data, plot_dir)
+    # replace NA values with 0 
+    data.fillna(0, inplace=True)
 
-    plot_partial_autocorrelation(data, plot_dir)
+    # plots
+    plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrelation.png", save_dir=plot_dir)
+
+    plot_partial_autocorrelation(data, n_lags=24*7+1, file_name="norreport_1A_partial_autocorrelation.png", save_dir=plot_dir)
 
 
    
