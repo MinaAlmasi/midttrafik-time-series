@@ -41,13 +41,16 @@ def main():
 
     # load data and impute missing
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
-    df = impute_missing(df, method='rolling', window=12)
+    df = impute_missing(df, method='rolling', window=24)
+
+    # print all na observations
+    print(df['y'].isna().sum())
 
     # load the results file from the grid search
     np_results = pd.read_csv(neuralprophet_path / 'np_gridsearch_20240516_160815.csv')
 
     # select top n models based on validation rmse
-    top_n_models = 5
+    top_n_models = 1
     best_models = np_results.sort_values(by="mean_rmse_val").iloc[:top_n_models]
 
     # get the n best parameters from "model" column as a dict

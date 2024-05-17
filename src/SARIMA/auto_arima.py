@@ -16,7 +16,7 @@ def main():
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
 
     # impute missing values
-    df = impute_missing(df, method='rolling', window=12)
+    df = impute_missing(df, method='rolling', window=24)
 
     # data setup
     gap = 24 # gap between train and val and train and test

@@ -116,7 +116,7 @@ def split_rolling_origin(X, gap:int=24, val_size:int=36, test_size:int=36, steps
     return train_inds, val_inds, test_inds
 
 
-def impute_missing(df, method='rolling', window=12):
+def impute_missing(df, method='rolling', window=24):
     '''
     Impute missing values in a dataframe using a specified method.
     '''

@@ -104,7 +104,7 @@ def main():
 
     # load data and impute missing values
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
-    df = impute_missing(df, method='rolling', window=12)
+    df = impute_missing(df, method='rolling', window=24)
 
     # hyperparameters to explore
     param_grid = {
