@@ -6,20 +6,8 @@ import sys
 import multiprocessing as mp
 
 sys.path.append(str(pathlib.Path(__file__).parents[1]))
-from data_utils import split_rolling_origin
+from data_utils import split_rolling_origin, impute_missing
 
-def impute_missing(df, method='rolling', window=20):
-    '''
-    Impute missing values in a dataframe using a specified method.
-    '''
-    if method == 'linear':
-        df['y'] = df['y'].interpolate(method='linear', limit_direction='both', limit=window)
-    elif method == 'rolling':
-        df['y'] = df['y'].interpolate(method='linear', limit_direction='both', limit=window)
-    else:
-        raise ValueError(f"Method {method} not recognized. Please use 'linear' or 'rolling'.")
-
-    return df
 
 def cv_single_fold(df, train_ind, val_ind, order:tuple, seasonal_order:tuple): 
     '''
@@ -92,7 +80,7 @@ def main():
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
 
     # impute missing values
-    df = impute_missing(df, method='rolling', window=20)
+    df = impute_missing(df, method='rolling', window=12)
 
     # data setup
     gap = 24 # gap between train and val and train and test
