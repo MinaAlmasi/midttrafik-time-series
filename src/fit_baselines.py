@@ -284,9 +284,9 @@ def main():
     # save the results
     results = pd.DataFrame({"model": ['Mean', 'Naive', 'Weekly Naive'],
                             'mean_mae_val': [mean_model_mae['val'], naive_mae['val'], weekly_naive_mae['val']],
-                            'mean_mae_test': [mean_model_mae['test'], naive_mae['test'], weekly_naive_mae['test']],
+                            'mae_test': [mean_model_mae['test'], naive_mae['test'], weekly_naive_mae['test']],
                             'mean_rmse_val': [mean_model_rmse['val'], naive_rmse['val'], weekly_naive_rmse['val']],
-                            'mean_rmse_test': [mean_model_rmse['test'], naive_rmse['test'], weekly_naive_rmse['test']]})
+                            'rmse_test': [mean_model_rmse['test'], naive_rmse['test'], weekly_naive_rmse['test']]})
     
     save_path = path.parents[1] / 'results'
     results.to_csv(save_path / 'baseline_results.csv', index=False)
