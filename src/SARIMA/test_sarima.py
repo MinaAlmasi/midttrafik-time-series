@@ -8,7 +8,7 @@ import multiprocessing as mp
 sys.path.append(str(pathlib.Path(__file__).parents[1]))
 from data_utils import split_rolling_origin, impute_missing
 
-def evaluate_model(model_fit, df_test):
+def evaluate_model(model_fit, df_test, save_path=None):
     '''
     Evaluate sarima model on test data
     '''
@@ -19,15 +19,17 @@ def evaluate_model(model_fit, df_test):
     mae_test = np.mean(np.abs(df_test['y'] - y_pred))
     rmse_test = np.sqrt(np.mean((df_test['y'] - y_pred)**2))
 
-    # make forecasts
-    forecast = model_fit.get_forecast(steps=len(df_test))
-
-    return mae_test, rmse_test, forecast
+    if save_path is not None:
+        df_forecast = pd.DataFrame({'ds': df_test['ds'], 'y': y_pred})
+        df_forecast.to_csv(save_path, index=False)
+    
+    return mae_test, rmse_test, y_pred
 
 def main(): 
     # set paths
     path = pathlib.Path(__file__)
     data_path = path.parents[2] / "data"
+    results_path = path.parents[2] / "results" / "forecasts"
 
     # load data
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
@@ -42,7 +44,7 @@ def main():
     min_train_size = 24*7 # i.e. 1 week 
 
     # split the data
-    train_inds, val_inds, test_inds = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size) # no need for test_inds here!
+    _, _, test_inds = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size) 
 
     # (best model found by auto_arima.py)
     order = (2, 1, 0) # p, d, q
@@ -60,8 +62,7 @@ def main():
     model_fit = model.fit()
 
     # evaluate model
-    mae_test, rmse_test, forecast = evaluate_model(model_fit, df_test)
-    print(forecast)
+    mae_test, rmse_test, y_pred = evaluate_model(model_fit, df_test, save_path=results_path / 'sarima_forecast.csv')
     print(f"MAE test: {mae_test}")
     print(f"RMSE test: {rmse_test}")
 

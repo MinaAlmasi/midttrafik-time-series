@@ -60,12 +60,15 @@ def mean_model(df, df_vals, df_test):
         mae_values[split] = mae
         rmse_values[split] = rmse
 
-    # get all forecasts for test set
-    test_forecast = df_test['y_pred']
+    # get all forecasts for test set (ds and y_pred column in df_test)
+    mm_test_forecast = df_test[['ds', 'y_pred']]
 
-    return mae_values, rmse_values, test_forecast
+    # rename y pred to y
+    mm_test_forecast.rename(columns={'y_pred': 'y'}, inplace=True)
 
-def naive_model(df_trains, df_vals, df_tests, gap=24):
+    return mae_values, rmse_values, mm_test_forecast
+
+def naive_model(df_trains, df_vals, df_test, gap=24):
     '''
     Naive model which always predicts last value in the training set (per fold)
     '''
@@ -98,19 +101,22 @@ def naive_model(df_trains, df_vals, df_tests, gap=24):
     # for the test set, we simply predict the last value in the training set overall
     last_value = df_trains.iloc[-1]['y']
 
-    df_tests['y_pred'] = last_value
+    df_test['y_pred'] = last_value
 
     # identify as test forecasts
-    naive_test_forecast = df_tests['y_pred']
+    naive_test_forecast = df_test[['ds', 'y_pred']]
+
+    # rename y pred to y
+    naive_test_forecast.rename(columns={'y_pred': 'y'}, inplace=True)
 
     # calculate MAE
-    df_tests['mae'] = abs(df_tests['y'] - df_tests['y_pred'])
-    test_mae = df_tests['mae'].mean()
+    df_test['mae'] = abs(df_test['y'] - df_test['y_pred'])
+    test_mae = df_test['mae'].mean()
     test_mae = round(test_mae, 3)
 
     # calculate RMSE
-    df_tests['mse'] = (df_tests['y'] - df_tests['y_pred'])**2
-    test_rmse = (df_tests['mse'].mean())**0.5
+    df_test['mse'] = (df_test['y'] - df_test['y_pred'])**2
+    test_rmse = (df_test['mse'].mean())**0.5
     test_rmse = round(test_rmse, 3)
 
     # create a dict with the MAE values and one with RMSE values
@@ -146,9 +152,12 @@ def weekly_naive_model(df, df_vals, df_test):
         index_week_ago = index - timesteps_back
         value_week_ago = df.loc[index_week_ago, 'y']
         df_test.loc[index, 'y_pred'] = value_week_ago
-    
+
     # identify as test forecasts
-    weekly_naive_test_forecasts = df_test['y_pred']
+    weekly_naive_test_forecasts = df_test[['ds', 'y_pred']]
+
+    # rename y pred to y
+    weekly_naive_test_forecasts.rename(columns={'y_pred': 'y'}, inplace=True)
     
     # calculate MAE & RMSE
     test_mae = abs(df_test['y'] - df_test['y_pred']).mean()
@@ -228,6 +237,7 @@ def main():
     # set paths
     path = pathlib.Path(__file__)
     data_path = path.parents[1] / 'data'
+    forecast_path = path.parents[1] / 'results' / 'forecasts'
 
     # load the data
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
@@ -251,15 +261,10 @@ def main():
     # fit the weekly naive model
     weekly_naive_mae, weekly_naive_rmse, weekly_naive_forecast = weekly_naive_model(df, df_vals, df_test.copy())
 
-    # create a dict with the forecasts and their model names
-    test_forecasts = {
-        'Mean Model': mean_model_test_forecast,
-        'Naive Model': naive_forecast,
-        'Weekly Naive Model': weekly_naive_forecast
-    }
-
-    # save the test forecasts
-    plot_test_forecasts(df_test, test_forecasts, save_path=path.parents[1] / 'plots', file_name='baseline_forecasts.png')
+    # write the test forecasts to csv
+    mean_model_test_forecast.to_csv(forecast_path / 'mm_forecast.csv', index=False)
+    naive_forecast.to_csv(forecast_path / 'naive_forecast.csv', index=False)
+    weekly_naive_forecast.to_csv(forecast_path / 'weekly_naive_forecast.csv', index=False)
     
     # print the results
     print("\n")
