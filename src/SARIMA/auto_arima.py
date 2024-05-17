@@ -4,7 +4,7 @@ from pmdarima.arima import auto_arima
 
 import sys 
 sys.path.append(str(pathlib.Path(__file__).parents[1]))
-from data_utils import split_rolling_origin
+from data_utils import split_rolling_origin, impute_missing
 
 
 def main():
@@ -14,6 +14,9 @@ def main():
 
     # load data
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
+
+    # impute missing values
+    df = impute_missing(df, method='rolling', window=12)
 
     # data setup
     gap = 24 # gap between train and val and train and test
