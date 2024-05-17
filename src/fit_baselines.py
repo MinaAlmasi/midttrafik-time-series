@@ -197,42 +197,6 @@ def plot_naive_horizon(results, save_path=None, file_name=None):
         save_path.mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path / file_name)
 
-def plot_test_forecasts(df_test, test_forecasts:dict, save_path=None, file_name=None):
-    '''
-    Plot the test forecasts against the true values
-    '''
-
-    # set the figure
-    plt.figure(figsize=(10, 6))
-
-    # plot the true values
-    plt.plot(df_test['ds'], df_test['y'], label='True values', color='black', linestyle='--')
-
-    # set the colors
-    colors = ['red', 'blue', 'green']
-
-    # plot each of the test forecasts 
-    for model_name, forecast in test_forecasts.items():
-        plt.plot(df_test['ds'], forecast, label=model_name, linestyle='-', color=colors.pop(0))
-    
-    # add legend
-    plt.legend()
-
-    # set axis
-    plt.xlabel('Date')
-    plt.ylabel('Value')
-
-    # show only every 6th tick
-    plt.xticks(df_test['ds'][::12])
-
-    # save
-    if save_path and file_name:
-        save_path.mkdir(parents=True, exist_ok=True)
-        plt.savefig(save_path / file_name)
-
-
-    
-
 def main(): 
     # set paths
     path = pathlib.Path(__file__)
