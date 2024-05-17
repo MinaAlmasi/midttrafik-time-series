@@ -1,21 +1,7 @@
 import pathlib
 import pandas as pd
-from data_utils import split_rolling_origin
+from data_utils import split_rolling_origin, impute_missing
 import matplotlib.pyplot as plt
-
-def impute_missing(df, method='rolling', window=20):
-    '''
-    Impute missing values in a dataframe using a specified method.
-    '''
-    if method == 'linear':
-        df['y'] = df['y'].interpolate(method='linear', limit_direction='both', limit=window)
-    elif method == 'rolling':
-        df['y'] = df['y'].interpolate(method='linear', limit_direction='both', limit=window)
-    else:
-        raise ValueError(f"Method {method} not recognized. Please use 'linear' or 'rolling'.")
-
-    return df
-
 
 def get_splits(df, train_inds, val_inds, test_inds):
     '''
@@ -247,7 +233,7 @@ def main():
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
 
     # impute missing values
-    df = impute_missing(df, method='rolling', window=20)
+    df = impute_missing(df, method='rolling', window=12)
 
     # split the data
     gap = 24
@@ -284,9 +270,9 @@ def main():
     # save the results
     results = pd.DataFrame({"model": ['Mean', 'Naive', 'Weekly Naive'],
                             'mean_mae_val': [mean_model_mae['val'], naive_mae['val'], weekly_naive_mae['val']],
-                            'mean_mae_test': [mean_model_mae['test'], naive_mae['test'], weekly_naive_mae['test']],
+                            'mae_test': [mean_model_mae['test'], naive_mae['test'], weekly_naive_mae['test']],
                             'mean_rmse_val': [mean_model_rmse['val'], naive_rmse['val'], weekly_naive_rmse['val']],
-                            'mean_rmse_test': [mean_model_rmse['test'], naive_rmse['test'], weekly_naive_rmse['test']]})
+                            'rmse_test': [mean_model_rmse['test'], naive_rmse['test'], weekly_naive_rmse['test']]})
     
     save_path = path.parents[1] / 'results'
     results.to_csv(save_path / 'baseline_results.csv', index=False)

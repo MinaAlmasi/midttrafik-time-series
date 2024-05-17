@@ -4,7 +4,7 @@ import multiprocessing as mp
 from neuralprophet import NeuralProphet
 from sklearn.model_selection import ParameterGrid
 import random
-from data_utils import split_rolling_origin
+from data_utils import split_rolling_origin, impute_missing
 from datetime import datetime
 
 def cv_single_fold(train_ind, val_ind, df, params, freq):
@@ -19,10 +19,7 @@ def cv_single_fold(train_ind, val_ind, df, params, freq):
         "yearly_seasonality": False, # set yearly seasonality also to avoid model having to check for it 
         'weekly_seasonality': True,
         'daily_seasonality': True,
-        'newer_samples_start': 0.5,
-        'impute_missing': True,
-        'impute_linear': 10, # default value
-        'impute_rolling': 10 # default value
+        'newer_samples_start': 0.5
     }
     all_params = {**default_params, **params}
 
@@ -101,9 +98,13 @@ def cross_validate(df, train_inds:dict, val_inds:dict, params:dict, freq="1h", n
     return metrics
 
 def main():
+    # set paths
     path = pathlib.Path(__file__)
     data_path = path.parents[1] / 'data'
+
+    # load data and impute missing values
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
+    df = impute_missing(df, method='rolling', window=12)
 
     # hyperparameters to explore
     param_grid = {
