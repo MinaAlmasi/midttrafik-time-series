@@ -115,6 +115,21 @@ def split_rolling_origin(X, gap:int=24, val_size:int=36, test_size:int=36, steps
 
     return train_inds, val_inds, test_inds
 
+
+def impute_missing(df, method='rolling', window=12):
+    '''
+    Impute missing values in a dataframe using a specified method.
+    '''
+    if method == 'linear':
+        df['y'] = df['y'].interpolate(method='linear', limit_direction='both', limit=window)
+    elif method == 'rolling':
+        df['y'] = df['y'].interpolate(method='linear', limit_direction='both', limit=window)
+    else:
+        raise ValueError(f"Method {method} not recognized. Please use 'linear' or 'rolling'.")
+
+    return df
+
+
 def main(): 
     # set paths
     path = pathlib.Path(__file__)
