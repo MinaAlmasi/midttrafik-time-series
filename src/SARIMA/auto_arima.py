@@ -34,6 +34,10 @@ def main():
     model = auto_arima(train_data['y'], seasonal=True, m=24, d=1, D=0, stepwise=True, stationary=False, test="kpss", trace=3)
 
     print(model.summary())
+
+    results_dir = path.parents[2] / "results"
+    with open(results_dir / "auto_arima_results.txt", "w") as file:
+        file.write(str(model.summary()))
     
 if __name__ == "__main__":
     main()
