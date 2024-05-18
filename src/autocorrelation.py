@@ -20,15 +20,14 @@ def plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrel
     fig, ax = plt.subplots(figsize=(24, 6)) 
     autocor_plot = plot_acf(data["y"], lags=n_lags, zero=False, ax=ax) # markersize = 1, linewidth = 0.5 (could be added)
 
-    # change axis tick values from lags to hours 
-    xticks = ax.get_xticks()
-    ax.set_xticks(xticks)
-    ax.set_xticklabels([int(xtick)/2 for xtick in xticks])
+    # set x ticks to every 12 hours
+    ax.set_xticks(range(0, n_lags+1, 12))
+    ax.set_xticklabels(range(0, n_lags+1, 12))
     ax.set_xlim(0, n_lags)
 
     # labels
     ax.set_title('')  
-    ax.set_xlabel('Hours')  
+    ax.set_xlabel('Lag / Hour')  
     ax.set_ylabel('Autocorrelation') 
 
     # rm whitespace
@@ -43,15 +42,14 @@ def plot_partial_autocorrelation(data, n_lags, file_name="norreport_1A_partial_a
     fig, ax = plt.subplots(figsize=(24, 6)) 
     pacf_plot = plot_pacf(data["y"], lags=n_lags, zero=False, ax=ax) # markersize = 1, linewidth = 0.5 (could be added)
 
-    # change axis tick values from lags to hours 
-    xticks = ax.get_xticks()
-    ax.set_xticks(xticks)
-    ax.set_xticklabels([int(xtick)/2 for xtick in xticks])
+    # set x ticks to every 6 hours
+    ax.set_xticks(range(0, n_lags+1, 6))
+    ax.set_xticklabels(range(0, n_lags+1, 6))
     ax.set_xlim(0, n_lags)
 
     # labels
     ax.set_title('')  
-    ax.set_xlabel('Hours')  
+    ax.set_xlabel('Lag / Hour')  
     ax.set_ylabel('Partial Autocorrelation') 
 
     # rm whitespace
