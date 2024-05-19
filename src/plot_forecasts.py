@@ -23,11 +23,12 @@ def plot_test_forecasts(df_test, test_forecasts:dict, forecast_colors:list, save
     plt.legend()
 
     # set axis
-    plt.xlabel('Date')
-    plt.ylabel('Value')
+    plt.xlabel('Date', fontsize=16, labelpad=10)
+    plt.ylabel('Number of Passengers', fontsize=14, labelpad=10)
 
-    # show only every 6th tick
-    #plt.xticks(df_test['ds'][::2])
+    # increase size of x and y axis titles
+    plt.xticks(fontsize=10)
+    plt.yticks(fontsize=10)
 
     # turn the x-axis labels
     plt.xticks(rotation=90)
