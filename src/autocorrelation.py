@@ -40,23 +40,38 @@ def plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrel
     fig.savefig(save_dir / file_name, dpi=300)
 
 
-def plot_partial_autocorrelation(data, n_lags, file_name="norreport_1A_partial_autocorrelation.png", save_dir=pathlib.Path(__file__).parents[1] / "plots"):
-
+def plot_partial_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_partial_autocorrelation.png", save_dir=pathlib.Path(__file__).parents[1] / "plots"):
     print("[INFO:] Creating partial autocorrelation plot")
-    fig, ax = plt.subplots(figsize=(24, 6)) 
-    pacf_plot = plot_pacf(data["y"], lags=n_lags, zero=False, ax=ax) # markersize = 1, linewidth = 0.5 (could be added)
+    
+    # initialize figure
+    fig, ax = plt.subplots(figsize=(18, 8))  # Matched figure size to plot_autocorrelation
 
-    # set x ticks to every 6 hours
-    ax.set_xticks(range(0, n_lags+1, 6))
-    ax.set_xticklabels(range(0, n_lags+1, 6))
+    # set font via FontProperties
+    font = FontProperties(family='Times New Roman', size=25)
+
+    # plot partial autocorrelation
+    pacf_plot = plot_pacf(data["y"], lags=n_lags, zero=True, ax=ax, title='')
+
+    # set x ticks to every 12 hours (for consistency)
+    ax.set_xticks(range(0, n_lags+1, 12))
+    ax.set_xticklabels(range(0, n_lags+1, 12), fontproperties=font)
     ax.set_xlim(0, n_lags)
 
-    # labels
-    ax.set_title('')  
-    ax.set_xlabel('Lag / Hour')  
-    ax.set_ylabel('Partial Autocorrelation') 
+    # set y ticks (optional customization)
+    ax.set_yticks([i/4 for i in range(-4, 5)])
+    ax.set_yticklabels([i/4 for i in range(-4, 5)], fontproperties=font) 
 
-    # rm whitespace
+    # set y lims
+    ax.set_ylim(-0.25, 1)
+
+    # Modify tick parameters
+    ax.tick_params(axis='both', which='major', labelsize=20)
+
+    # setting labels with font properties
+    ax.set_xlabel('Lag / Hour', fontproperties=font, labelpad=18)
+    ax.set_ylabel('Partial Autocorrelation', fontproperties=font, labelpad=18)
+
+    # remove whitespace and save the figure
     fig.tight_layout()
     save_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(save_dir / file_name, dpi=300)
@@ -74,9 +89,9 @@ def main():
     data.fillna(0, inplace=True)
 
     # plots
-    plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrelation.png", save_dir=plot_dir)
+    #plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrelation.png", save_dir=plot_dir)
 
-    #plot_partial_autocorrelation(data, n_lags=24*7+1, file_name="norreport_1A_partial_autocorrelation.png", save_dir=plot_dir)
+    plot_partial_autocorrelation(data, n_lags=24*7+1, file_name="norreport_1A_partial_autocorrelation.png", save_dir=plot_dir)
 
 
    
