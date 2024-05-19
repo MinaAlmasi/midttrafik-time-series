@@ -8,7 +8,7 @@ def plot_test_forecasts(df_test, test_forecasts:dict, forecast_colors:list, save
     '''
 
     # set the figure
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(15, 12))
 
     # plot the true values
     plt.plot(df_test['ds'], df_test['y'], label='True values', color='black')
@@ -27,7 +27,13 @@ def plot_test_forecasts(df_test, test_forecasts:dict, forecast_colors:list, save
     plt.ylabel('Value')
 
     # show only every 6th tick
-    plt.xticks(df_test['ds'][::12])
+    #plt.xticks(df_test['ds'][::2])
+
+    # turn the x-axis labels
+    plt.xticks(rotation=90)
+
+    # ensure tight layout
+    plt.tight_layout()
 
     # save
     if save_path and file_name:
