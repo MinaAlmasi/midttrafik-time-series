@@ -3,37 +3,41 @@ import pandas as pd
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import pacf
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
+
 
 
 def plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrelation.png", save_dir=pathlib.Path(__file__).parents[1] / "plots"):
-    '''
-    Plot autocorrelation of time series data
-
-    Args
-        data: dataframe
-        n_lags: int, number of lags to include in the plot (defaults to 2 weeks i.e., 24*7*2)
-        save_dir: path to save the plot
-        file_name: name of the file to save the plot as
-    '''
-
     print("[INFO:] Creating autocorrelation plot")
-    fig, ax = plt.subplots(figsize=(24, 6)) 
-    autocor_plot = plot_acf(data["y"], lags=n_lags, zero=False, ax=ax) # markersize = 1, linewidth = 0.5 (could be added)
+    # Initialize figure
+    fig, ax = plt.subplots(figsize=(18, 8)) 
 
-    # set x ticks to every 12 hours
+    # Set font via FontProperties
+    font = FontProperties(family='Times New Roman', size=25)
+
+    # Plot autocorrelation
+    autocor_plot = plot_acf(data["y"], title='', lags=n_lags, zero=True, ax=ax)
+
+    # Set x ticks to every 12 hours
     ax.set_xticks(range(0, n_lags+1, 12))
-    ax.set_xticklabels(range(0, n_lags+1, 12))
-    ax.set_xlim(0, n_lags)
+    ax.set_xticklabels(range(0, n_lags+1, 12), fontproperties=font)  # Applying font properties to xtick labels
+    ax.set_xlim(0, n_lags+1)
 
-    # labels
-    ax.set_title('')  
-    ax.set_xlabel('Lag / Hour')  
-    ax.set_ylabel('Autocorrelation') 
+    # set y tricks to every 0.25
+    ax.set_yticks([i/4 for i in range(-4, 5)])
+    ax.set_yticklabels([i/4 for i in range(-4, 5)], fontproperties=font)  # Applying font properties to ytick labels
 
-    # rm whitespace
+    # Modify tick parameters
+    ax.tick_params(axis='both', which='major', labelsize=20)
+
+    # Setting labels with font properties
+    ax.set_xlabel('Lag / Hour', fontproperties=font, labelpad=18)  
+    ax.set_ylabel('Autocorrelation', fontproperties=font, labelpad=18) 
+
+    # Remove whitespace and save the figure
     fig.tight_layout()
     save_dir.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_dir / file_name, dpi=300)  
+    fig.savefig(save_dir / file_name, dpi=300)
 
 
 def plot_partial_autocorrelation(data, n_lags, file_name="norreport_1A_partial_autocorrelation.png", save_dir=pathlib.Path(__file__).parents[1] / "plots"):
@@ -72,7 +76,7 @@ def main():
     # plots
     plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrelation.png", save_dir=plot_dir)
 
-    plot_partial_autocorrelation(data, n_lags=24*7+1, file_name="norreport_1A_partial_autocorrelation.png", save_dir=plot_dir)
+    #plot_partial_autocorrelation(data, n_lags=24*7+1, file_name="norreport_1A_partial_autocorrelation.png", save_dir=plot_dir)
 
 
    
