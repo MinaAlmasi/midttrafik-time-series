@@ -3,33 +3,44 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from statsmodels.tsa.seasonal import seasonal_decompose
 
-def plot_timeseries(df, figsize:tuple=(40,10), ylim:tuple=(0,75), label_share=1, save_path=None, save_file=None, **kwargs):
-    # set font to times
+def plot_timeseries(df, figsize:tuple=(40,10), ylim:tuple=(0,75), label_share=10, save_path=None, save_file=None, **kwargs):
+    # reset index to ensure that the x-axis is the index
+    df = df.reset_index()
+
+    # set font to Times New Roman
     plt.rcParams["font.family"] = "Times New Roman"
 
     # create plot
     ts_plot = df.plot(x="ds", y="y", figsize=figsize, ylim=ylim, **kwargs)
 
-    # limit the x-axis
-    ts_plot.set_xlim(0, len(df))
+    # rm legend
+    ts_plot.get_legend().remove()
+
+    # set limits on x-axis based on the DataFrame's index size
+    ts_plot.set_xlim(0, len(df) - 1)
 
     # add x and y labels
-    ts_plot.set_xlabel("Datetime", fontsize=20, labelpad=16)
-    ts_plot.set_ylabel("Passenger Count", fontsize=20, labelpad=16)
+    ts_plot.set_xlabel("Datetime", fontsize=24, labelpad=16)
+    ts_plot.set_ylabel("Passenger Count", fontsize=24, labelpad=16)
 
     # rotate x-axis labels 90 degrees
     ts_plot.set_xticklabels(ts_plot.get_xticklabels(), rotation=90)
 
-    # ensure all x-axis labels are shown
-    ts_plot.xaxis.set_major_locator(plt.MaxNLocator(label_share))
+    # configure ticks to show a label every 'label_share' values
+    tick_positions = range(0, len(df), label_share)  # generates a range from 0 to the length of df, stepping by 'label_share'
+    tick_labels = [df.loc[i, 'ds'] if i in df.index else "" for i in tick_positions]  # get labels for these positions
+    ts_plot.set_xticks(tick_positions)  # set the tick positions
+    ts_plot.set_xticklabels(tick_labels)  # set the tick labels
+
+    # increase size of x and y values
+    ts_plot.tick_params(axis='both', which='major', labelsize=16)
 
     # tighten the layout
     plt.tight_layout()
 
-
     if save_path and save_file:
-        ts_plot.get_figure().savefig(save_path / save_file)
-    
+        plt.savefig(save_path / save_file, dpi=200)  # ensure to use plt.savefig for correct saving
+
     return ts_plot
 
 
@@ -56,15 +67,15 @@ def main():
     df = pd.read_csv(data_path / "processed_1A_norreport.csv")
 
     # plot the timeseries for Cumulative
-    plot_timeseries(df, figsize=(40,10), ylim=(0,75), label_share = 10, save_path=plot_dir, save_file="norreport_1A_ts.png")
+    plot_timeseries(df, figsize=(25,10), ylim=(0,75), label_share = 500, save_path=plot_dir, save_file="norreport_1A_ts.png", linewidth=0.8)
 
     # create another plot that is zoomed into the last two month (24 hours x 30 days * 2 months)
     df_recent = df.tail(2*24*30)
-    plot_timeseries(df_recent, figsize=(25,10), ylim=(0,65), label_share = 10, save_path=plot_dir, save_file="norreport_1A_ts_recent.png")
+    plot_timeseries(df_recent, figsize=(25,10), ylim=(0,65), label_share = 40, save_path=plot_dir, save_file="norreport_1A_ts_recent.png", linewidth=2)
 
     # create another that is just the last two days
     df_two_days = df.tail(2*24)
-    plot_timeseries(df_two_days, figsize=(15,10), ylim=(0,60), label_share = 200, save_path=plot_dir, save_file="norreport_1A_ts_two_days.png", linewidth=2)
+    plot_timeseries(df_two_days, figsize=(25,10), ylim=(0,60), label_share = 2, save_path=plot_dir, save_file="norreport_1A_ts_two_days.png", linewidth=3)
     
     # plot the decomposed timeseries
     #plot_decompose(df, freq=24, save_path=plot_dir, save_file="norreport_1A_decompose.png")
