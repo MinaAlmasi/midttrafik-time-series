@@ -119,11 +119,19 @@ def split_rolling_origin(X, gap:int=24, val_size:int=36, test_size:int=36, steps
 def impute_missing(df, method='rolling', window=24):
     '''
     Impute missing values in a dataframe using a specified method.
+    Iteratively applies the method to handle large gaps of missing values.
     '''
     if method == 'linear':
         df['y'] = df['y'].interpolate(method='linear', limit_direction='both', limit=window)
     elif method == 'rolling':
-        df['y'] = df['y'].interpolate(method='linear', limit_direction='both', limit=window)
+        # We need to loop until no more NaNs are filled to handle large gaps
+        last_nan_count = df['y'].isna().sum()
+        while True:
+            df['y'] = df['y'].fillna(df['y'].rolling(window=window, min_periods=1).mean())
+            current_nan_count = df['y'].isna().sum()
+            if current_nan_count == last_nan_count:  # No more NaNs are filled
+                break
+            last_nan_count = current_nan_count
     else:
         raise ValueError(f"Method {method} not recognized. Please use 'linear' or 'rolling'.")
 
