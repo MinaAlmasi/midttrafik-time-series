@@ -46,16 +46,51 @@ def plot_timeseries(df, figsize:tuple=(40,10), ylim:tuple=(0,75), label_share=10
     return ts_plot
 
 
-def plot_decompose(df, freq:int=24, save_path=None, save_file=None):
+def plot_decompose(df, freq:int=24, label_share:int=10, save_path=None, save_file=None):
+    # set font to Times New Roman
+    plt.rcParams["font.family"] = "Times New Roman"
+
     # decompose the timeseries
-    decomp = seasonal_decompose(df['y'], period=freq)
+    decomp = seasonal_decompose(df['y'], period=freq, model='additive')
 
     # plot the decomposed timeseries
     decomp_plot = decomp.plot()
-    decomp_plot.set_size_inches((40, 10))
+
+    # set size
+    decomp_plot.set_size_inches((20, 10))
+
+    # remove "y" title
+    decomp_plot.axes[0].set_title("")
+
+    # ensure y-axis is only whole numbers
+    decomp_plot.axes[0].yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    decomp_plot.axes[1].yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    decomp_plot.axes[2].yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    decomp_plot.axes[3].yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+    # increase font of x and y labels
+    decomp_plot.axes[0].set_ylabel("Observed (Y)", fontsize=22, labelpad=20)
+    decomp_plot.axes[1].set_ylabel("Trend (T)", fontsize=22, labelpad=20)
+    decomp_plot.axes[2].set_ylabel("Seasonality (S)", fontsize=22, labelpad=10)
+    decomp_plot.axes[3].set_ylabel("Remainder (R)", fontsize=22, labelpad=10)
+
+    # increase font of x and y values
+    decomp_plot.axes[0].tick_params(axis='both', which='major', labelsize=17)
+    decomp_plot.axes[1].tick_params(axis='both', which='major', labelsize=17)
+    decomp_plot.axes[2].tick_params(axis='both', which='major', labelsize=17)
+    decomp_plot.axes[3].tick_params(axis='both', which='major', labelsize=17)
+
+    # set x-axis label
+    decomp_plot.axes[3].set_xlabel("Observations", fontsize=22, labelpad=16)
+
+    # tighten the layout
+    plt.tight_layout()
+
+    # increase ticks on x-axis
+    decomp_plot.axes[0].set_xticks(range(df.index[0], df.index[-1], label_share))
 
     if save_path and save_file:
-        decomp_plot.get_figure().savefig(save_path / save_file)
+        decomp_plot.get_figure().savefig(save_path / save_file, dpi=300)
 
     return decomp_plot
 
@@ -83,10 +118,10 @@ def main():
     df = impute_missing(df, method='rolling', window=24)
     
     # plot the decomposed timeseries
-    plot_decompose(df, freq=24, save_path=plot_dir, save_file="norreport_1A_decompose.png")
+    plot_decompose(df, freq=24, label_share = 800, save_path=plot_dir, save_file="norreport_1A_decompose.png")
 
     # plot the decomposed timeseries for the last two days
-    plot_decompose(df_recent, freq=24, save_path=plot_dir, save_file="norreport_1A_decompose_recent.png")
+    plot_decompose(df_recent, freq=24, label_share = 100, save_path=plot_dir, save_file="norreport_1A_decompose_recent.png")
 
 if __name__ == "__main__":
     main()
