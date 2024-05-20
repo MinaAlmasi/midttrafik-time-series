@@ -80,7 +80,7 @@ def main():
     plot_timeseries(df_two_days, figsize=(25,10), ylim=(0,60), label_share = 2, save_path=plot_dir, save_file="norreport_1A_ts_two_days.png", linewidth=3)
 
     # impute missing before decomposing
-    df = impute_missing(df, method='rolling', window=36)
+    df = impute_missing(df, method='rolling', window=24)
     
     # plot the decomposed timeseries
     plot_decompose(df, freq=24, save_path=plot_dir, save_file="norreport_1A_decompose.png")
