@@ -2,6 +2,8 @@ import pathlib
 import pandas as pd
 import matplotlib.pyplot as plt
 from statsmodels.tsa.seasonal import seasonal_decompose
+from data_utils import impute_missing
+
 
 def plot_timeseries(df, figsize:tuple=(40,10), ylim:tuple=(0,75), label_share=10, save_path=None, save_file=None, **kwargs):
     # reset index to ensure that the x-axis is the index
@@ -76,12 +78,15 @@ def main():
     # create another that is just the last two days
     df_two_days = df.tail(2*24)
     plot_timeseries(df_two_days, figsize=(25,10), ylim=(0,60), label_share = 2, save_path=plot_dir, save_file="norreport_1A_ts_two_days.png", linewidth=3)
+
+    # impute missing before decomposing
+    df = impute_missing(df, method='rolling', window=36)
     
     # plot the decomposed timeseries
-    #plot_decompose(df, freq=24, save_path=plot_dir, save_file="norreport_1A_decompose.png")
+    plot_decompose(df, freq=24, save_path=plot_dir, save_file="norreport_1A_decompose.png")
 
     # plot the decomposed timeseries for the last two days
-    #plot_decompose(df_recent, freq=24, save_path=plot_dir, save_file="norreport_1A_decompose_recent.png")
+    plot_decompose(df_recent, freq=24, save_path=plot_dir, save_file="norreport_1A_decompose_recent.png")
 
 if __name__ == "__main__":
     main()
