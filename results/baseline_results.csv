@@ -1,4 +1,4 @@
 model,mean_mae_val,mae_test,mean_rmse_val,rmse_test
-Mean,12.473,15.464,14.648,16.586
-Naive,12.15,17.28,14.663,19.278
-Weekly Naive,4.649,3.381,7.263,4.764
+Mean,12.441,15.444,14.622,16.564
+Naive,12.016,17.28,14.473,19.278
+Weekly Naive,4.602,3.381,7.071,4.764
