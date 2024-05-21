@@ -114,6 +114,10 @@ def main():
     df_two_days = df.tail(2*24)
     plot_timeseries(df_two_days, figsize=(25,10), ylim=(0,60), label_share = 2, save_path=plot_dir, save_file="norreport_1A_ts_two_days.png", linewidth=3)
 
+    # create one that is the last week
+    #df_week = df.tail(7*24)
+    #plot_timeseries(df_week, figsize=(25,10), ylim=(0,60), label_share = 10, save_path=plot_dir, save_file="norreport_1A_ts_week.png", linewidth=3)
+
     # create a custom subset that covers the snowstorm days (from 03-01-2024 to 08-01-2024)
     df_snowstorm = df[(df['ds'] >= '2023-12-25') & (df['ds'] <= '2024-01-15')]
     plot_timeseries(df_snowstorm, figsize=(25,10), ylim=(0,60), label_share = 10, save_path=plot_dir, save_file="norreport_1A_ts_snowstorm.png", linewidth=3)
