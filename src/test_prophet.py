@@ -69,7 +69,7 @@ def main():
     df = impute_missing(df, method='rolling', window=24)
 
     # load the results file from the grid search
-    np_results = pd.read_csv(neuralprophet_path / 'np_gridsearch_20240517_140347.csv')
+    np_results = pd.read_csv(neuralprophet_path / 'np_gridsearch_20240520_210018.csv')
 
     # select top n models based on validation rmse
     top_n_models = 5
