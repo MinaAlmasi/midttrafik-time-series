@@ -60,23 +60,12 @@ def evaluate_model(df_full_train, dropped_inds, df_test, model, gap=24):
 
     return metrics, forecast
 
-def main(): 
-    # set paths
-    path = pathlib.Path(__file__)
-    data_path = path.parents[2] / "data"
-    results_path = path.parents[2] / "results"
-    neuralprophet_path = results_path / "neural-prophet"
+def stop_pipeline(stop_df, np_results_df, forecast_path, results_path, top_n_models=5, save_test_only=False):
+    # impute missing values
+    stop_df = impute_missing(stop_df, method='rolling', window=24)
 
-    # load data and impute missing
-    df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
-    df = impute_missing(df, method='rolling', window=24)
-
-    # load the results file from the grid search
-    np_results = pd.read_csv(neuralprophet_path / 'np_gridsearch_20240520_210018.csv')
-
-    # select top n models based on validation rmse
-    top_n_models = 5
-    best_models = np_results.sort_values(by="mean_rmse_val").iloc[:top_n_models]
+    # identify best models
+    best_models = np_results_df.sort_values(by="mean_rmse_val").iloc[:top_n_models]
 
     # get the n best parameters from "model" column as a dict
     top_params = best_models['model'].apply(eval).tolist()
@@ -89,14 +78,14 @@ def main():
     min_train_size = 24*7 # i.e. 1 week 
 
     # load the test data
-    _, _, test_inds = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size)
+    _, _, test_inds = split_rolling_origin(stop_df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size)
 
     # add gap to the test indices
-    dropped_inds = df.index[-(len(test_inds) + gap-1):].tolist()
+    dropped_inds = stop_df.index[-(len(test_inds) + gap-1):].tolist()
 
     # get full train data (all data except test data and gap)
-    df_full_train = df.copy().drop(index=dropped_inds, axis=0)
-    df_test = df.iloc[test_inds]
+    df_full_train = stop_df.copy().drop(index=dropped_inds, axis=0)
+    df_test = stop_df.iloc[test_inds]
 
     mae_values = []
     rmse_values = []
@@ -111,7 +100,7 @@ def main():
         metrics, forecast = evaluate_model(df_full_train, dropped_inds, df_test, model, gap=gap)
 
         # save the forecast named after the model number
-        forecast.to_csv(results_path / "forecasts" / f'np{model_number}_forecast.csv', index=False)
+        forecast.to_csv(forecast_path / f'np{model_number}_forecast.csv', index=False)
 
         # get the MAE and RMSE from the results (they are called val but they are from the test set)
         mae_test = metrics['MAE_val'].values[0]
@@ -122,10 +111,52 @@ def main():
 
     # add the results to the best_models dataframe
     best_models['mae_test'] = mae_values
-    best_models['rmse_test'] = rmse_values
+    best_models['rmse_test'] = rmse_values  
+    
+    if save_test_only: 
+        # drop all cols but mae_test and rmse_test
+        best_models = best_models[['model_number', 'model', 'mae_test', 'rmse_test']]
 
     # save the results
     best_models.to_csv(results_path / 'np_results.csv', index=False)
+
+def main(): 
+    # set paths
+    path = pathlib.Path(__file__)
+    data_path = path.parents[2] / "data" / "clean_stops"
+    results_path = path.parents[2] / "results" 
+
+    # load the results file from the grid search
+    neuralprophet_path = results_path / "norreport" /  "neural-prophet-grid-search" # grid search only done on norreport
+    np_results_df = pd.read_csv(neuralprophet_path / 'np_gridsearch_20240520_210018.csv')
+    
+    # load nørreport data
+    df = pd.read_csv(data_path / 'clean_1A_norreport.csv')
+
+    # run on norreport
+    norreport_results_path = results_path / "norreport"
+    norreport_forecast_path = norreport_results_path / "forecasts"
+    norreport_results_path.mkdir(parents=True, exist_ok=True)
+    norreport_forecast_path.mkdir(parents=True, exist_ok=True)
+    stop_pipeline(df, np_results_df, norreport_forecast_path, norreport_results_path, top_n_models=5, save_test_only=False)
+
+    # run on all stops
+    for stop in data_path.iterdir():
+        if stop.name == 'clean_1A_norreport.csv': # skip norreport as it has its seperate pipeline
+            continue
+        
+        # load the data
+        df = pd.read_csv(stop)
+
+        # stop name (remove clean_1A_ and .csv) from name
+        stop_name = stop.stem[9:]
+
+        # results path 
+        other_results_path = results_path / "other_stops" / stop_name
+        other_results_path.mkdir(parents=True, exist_ok=True)
+
+        # run the pipeline
+        stop_pipeline(df, np_results_df, other_results_path, other_results_path, top_n_models=5, save_test_only=True)
 
 if __name__ == "__main__":
     main()
