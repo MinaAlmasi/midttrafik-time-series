@@ -64,16 +64,5 @@ def main():
     print("[INFO:] Saving filtered 1A from Kolt to CSV")
     df_1A_filtered.to_csv(path.parents[2] / "data" / "1A_from_kolt_filtered.csv", index=False)
 
-    ## STOP NUMBER ##
-    # save only stop number = 751301201 (Nørreport)
-    stopnumber = 751301201
-    print(f"[INFO]: Filter on stop number {stopnumber}")
-    norreport_1A = df_1A_filtered[df_1A_filtered["stopnumber"] == stopnumber]
-
-    print(norreport_1A.head())
-
-    # save as CSV 
-    norreport_1A.to_csv(path.parents[2] / "data" / "1A_norreport.csv", index=False)
-
 if __name__ == "__main__":
     main()
