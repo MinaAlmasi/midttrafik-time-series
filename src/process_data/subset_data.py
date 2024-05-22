@@ -1,7 +1,10 @@
 import pathlib
-import pandas as pd
-from data_utils import read_data    
+import pandas as pd  
 from tqdm import tqdm
+
+import sys 
+sys.path.append(str(pathlib.Path(__file__).parents[1]))
+from data_utils import read_data
 
 def main(): 
     # define path
