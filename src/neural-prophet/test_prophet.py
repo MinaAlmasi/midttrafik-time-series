@@ -121,8 +121,8 @@ def main():
         rmse_values.append(rmse_test)
 
     # add the results to the best_models dataframe
-    best_models['MAE_test'] = mae_values
-    best_models['RMSE_test'] = rmse_values
+    best_models['mae_test'] = mae_values
+    best_models['rmse_test'] = rmse_values
 
     # save the results
     best_models.to_csv(results_path / 'np_results.csv', index=False)
