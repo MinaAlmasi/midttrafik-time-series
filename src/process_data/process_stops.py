@@ -96,6 +96,10 @@ def main():
     plot_dir.mkdir(exist_ok=True, parents=True)
     data_dir = path.parents[2] / "data" / "raw_stops"
 
+    # set path for clean stops
+    clean_stops_path = path.parents[2] / "data" / "clean_stops"
+    clean_stops_path.mkdir(exist_ok=True, parents=True)
+
     # iterate over all stops and process
     for stop in data_dir.iterdir():
         print(f"[INFO:] Processing {stop.stem}")
@@ -107,7 +111,7 @@ def main():
         stop_df = process_stop(stop_df)
 
         # save the processed data
-        stop_df.to_csv(path.parents[2] / "data" / "clean_stops" / f"clean_{stop.stem}.csv", index=False)
+        stop_df.to_csv(clean_stops_path / f"clean_{stop.stem}.csv", index=False)
 
 if __name__ == "__main__":
     main()

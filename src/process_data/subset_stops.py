@@ -24,6 +24,10 @@ def main():
          "park_alle": 751001502,
          "vejlby_centervej": 751100203
          }
+    
+    # create the raw stops folder
+    raw_stops_path = path.parents[2] / "data" / "raw_stops"
+    raw_stops_path.mkdir(parents=True, exist_ok=True)
 
     # iterate over stops
     for stop_name, stop_number in stops.items(): 
@@ -33,7 +37,7 @@ def main():
         df_filtered = df[df["stopnumber"] == stop_number]
 
         # save as CSV 
-        df_filtered.to_csv(path.parents[2] / "data" / "raw_stops" / f"1A_{stop_name}.csv", index=False)
+        df_filtered.to_csv(raw_stops_path / f"1A_{stop_name}.csv", index=False)
 
 
 if __name__ == "__main__":
