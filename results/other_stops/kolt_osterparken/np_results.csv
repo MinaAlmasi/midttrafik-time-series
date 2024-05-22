@@ -1,0 +1,6 @@
+model_number,model,mae_test,rmse_test
+37,"{'ar_layers': [1], 'batch_size': 48, 'epochs': 40, 'learning_rate': 0.15, 'n_lags': 12, 'newer_samples_weight': 4, 'seasonality_reg': 0.1}",1.0772602558135986,1.3599096536636353
+1,"{'ar_layers': [1], 'batch_size': 48, 'epochs': 40, 'learning_rate': 0.15, 'n_lags': 12, 'newer_samples_weight': 2, 'seasonality_reg': 0.1}",1.0736299753189087,1.40854012966156
+21,"{'ar_layers': [1], 'batch_size': 48, 'epochs': 40, 'learning_rate': 0.15, 'n_lags': 12, 'newer_samples_weight': 2, 'seasonality_reg': 0.5}",1.2429500818252563,1.8676694631576538
+34,"{'ar_layers': [1], 'batch_size': 24, 'epochs': 40, 'learning_rate': 0.15, 'n_lags': 12, 'newer_samples_weight': 4, 'seasonality_reg': 0.1}",1.0548261404037476,1.4147065877914429
+28,"{'ar_layers': [1], 'batch_size': 24, 'epochs': 80, 'learning_rate': 0.15, 'n_lags': 12, 'newer_samples_weight': 4, 'seasonality_reg': 0.1}",1.1194007396697998,1.4611541032791138

@@ -92,22 +92,9 @@ def naive_model(df_trains, df_vals, df_test, gap=24):
     val_rmse = (df_vals['mse'].mean())**0.5
     val_rmse = round(val_rmse, 3)
 
-    # add horizon col
-    df_vals["horizon"] = df_vals.groupby('fold').cumcount() + gap
-
-    # select mae and horizon for new df 
-    naive_results = df_vals[['mae', 'horizon']]
-
     # for the test set, we simply predict the last value in the training set overall
     last_value = df_trains.iloc[-1]['y']
-
     df_test['y_pred'] = last_value
-
-    # identify as test forecasts
-    naive_test_forecast = df_test[['ds', 'y_pred']]
-
-    # rename y pred to y
-    naive_test_forecast.rename(columns={'y_pred': 'y'}, inplace=True)
 
     # calculate MAE
     df_test['mae'] = abs(df_test['y'] - df_test['y_pred'])
@@ -122,8 +109,12 @@ def naive_model(df_trains, df_vals, df_test, gap=24):
     # create a dict with the MAE values and one with RMSE values
     mae_values = {'val': val_mae, 'test': test_mae}
     rmse_values = {'val': val_rmse, 'test': test_rmse}
+    
+    # make forecast
+    naive_test_forecast = df_test[['ds', 'y_pred']]
+    naive_test_forecast.rename(columns={'y_pred': 'y'}, inplace=True) # rename for plotting
 
-    return mae_values, rmse_values, naive_test_forecast, naive_results
+    return mae_values, rmse_values, naive_test_forecast
 
 def weekly_naive_model(df, df_vals, df_test):
     '''
@@ -153,12 +144,6 @@ def weekly_naive_model(df, df_vals, df_test):
         value_week_ago = df.loc[index_week_ago, 'y']
         df_test.loc[index, 'y_pred'] = value_week_ago
 
-    # identify as test forecasts
-    weekly_naive_test_forecasts = df_test[['ds', 'y_pred']]
-
-    # rename y pred to y
-    weekly_naive_test_forecasts.rename(columns={'y_pred': 'y'}, inplace=True)
-    
     # calculate MAE & RMSE
     test_mae = abs(df_test['y'] - df_test['y_pred']).mean()
     test_mae = round(test_mae, 3)
@@ -170,42 +155,27 @@ def weekly_naive_model(df, df_vals, df_test):
     mae_values = {'val': val_mae, 'test': test_mae}
     rmse_values = {'val': val_rmse, 'test': test_rmse}
 
+    # identify as test forecasts
+    weekly_naive_test_forecasts = df_test[['ds', 'y_pred']]
+
+    # rename y pred to y
+    weekly_naive_test_forecasts.rename(columns={'y_pred': 'y'}, inplace=True)
+    
+
     return mae_values, rmse_values, weekly_naive_test_forecasts
 
-def plot_naive_horizon(results, save_path=None, file_name=None):
+def stop_pipeline(df, forecast_path, results_path, save_test_only=False):
     '''
-    Plot the MAE as a function of the horizon
+    Analysis pipeline for each stop. 
+    Function will perform cross validation and test the models on the test set.
+
+    Args:
+        df: data
+        forecast_path: path to save the forecasts
+        results_path: path to save the results
+        save_test_only: if True, only save the test results (used for all stops except norreport)
     '''
-    # group by horizon and calculate the mean and sd
-    results = results.groupby('horizon').agg({'mae': ['mean', 'std']}).reset_index()
-
-    # plot as a line plot with shaded error
-    plt.figure(figsize=(10, 6))
-
-    plt.plot(results['horizon'], results['mae']['mean'], color='blue')
-
-    plt.fill_between(results['horizon'],
-                        results['mae']['mean'] - results['mae']['std'],
-                        results['mae']['mean'] + results['mae']['std'],
-                        color='blue', alpha=0.2)
-
-    plt.xlabel('Horizon')
-    plt.ylabel('MAE')
-
-    # save 
-    if save_path and file_name:
-        save_path.mkdir(parents=True, exist_ok=True)
-        plt.savefig(save_path / file_name)
-
-def main(): 
-    # set paths
-    path = pathlib.Path(__file__)
-    data_path = path.parents[1] / 'data'
-    forecast_path = path.parents[1] / 'results' / 'forecasts'
-
-    # load the data
-    df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
-
+    
     # impute missing values
     df = impute_missing(df, method='rolling', window=24)
 
@@ -218,9 +188,7 @@ def main():
     mean_model_mae, mean_model_rmse, mean_model_test_forecast = mean_model(df, df_vals, df_test.copy())
 
     # fit the naive model
-    naive_mae, naive_rmse, naive_forecast, naive_results = naive_model(df_trains, df_vals, df_test.copy())
-
-    #plot_naive_horizon(naive_results, save_path=path.parents[1] / 'plots', file_name='naive_horizon.png')
+    naive_mae, naive_rmse, naive_forecast = naive_model(df_trains, df_vals, df_test.copy())
     
     # fit the weekly naive model
     weekly_naive_mae, weekly_naive_rmse, weekly_naive_forecast = weekly_naive_model(df, df_vals, df_test.copy())
@@ -237,14 +205,56 @@ def main():
     print(f'Weekly naive model MAE: {weekly_naive_mae}, RMSE: {weekly_naive_rmse}')
 
     # save the results
-    results = pd.DataFrame({"model": ['Mean', 'Naive', 'Weekly Naive'],
-                            'mean_mae_val': [mean_model_mae['val'], naive_mae['val'], weekly_naive_mae['val']],
-                            'mae_test': [mean_model_mae['test'], naive_mae['test'], weekly_naive_mae['test']],
-                            'mean_rmse_val': [mean_model_rmse['val'], naive_rmse['val'], weekly_naive_rmse['val']],
-                            'rmse_test': [mean_model_rmse['test'], naive_rmse['test'], weekly_naive_rmse['test']]})
+    if not save_test_only:
+        results = pd.DataFrame({"model": ['Mean', 'Naive', 'Weekly Naive'],
+                                'mean_mae_val': [mean_model_mae['val'], naive_mae['val'], weekly_naive_mae['val']],
+                                'mae_test': [mean_model_mae['test'], naive_mae['test'], weekly_naive_mae['test']],
+                                'mean_rmse_val': [mean_model_rmse['val'], naive_rmse['val'], weekly_naive_rmse['val']],
+                                'rmse_test': [mean_model_rmse['test'], naive_rmse['test'], weekly_naive_rmse['test']]})
+        
+    else: 
+        results = pd.DataFrame({"model": ['Mean', 'Naive', 'Weekly Naive'],
+                                'mae_test': [mean_model_mae['test'], naive_mae['test'], weekly_naive_mae['test']],
+                                'rmse_test': [mean_model_rmse['test'], naive_rmse['test'], weekly_naive_rmse['test']]})
     
-    save_path = path.parents[1] / 'results'
-    results.to_csv(save_path / 'baseline_results.csv', index=False)
+    results.to_csv(results_path / 'baseline_results.csv', index=False)
+
+
+def main(): 
+    # set paths
+    path = pathlib.Path(__file__)
+    data_path = path.parents[1] / 'data' / "clean_stops"
+    results_path = path.parents[1] / 'results'
+
+    # load the data
+    df = pd.read_csv(data_path / 'clean_1A_norreport.csv')
+
+    # run the pipeline for norreport
+    norreport_results_path = results_path / "norreport"
+    norreport_forecast_path = norreport_results_path / "forecasts"
+    norreport_results_path.mkdir(parents=True, exist_ok=True)
+    norreport_forecast_path.mkdir(parents=True, exist_ok=True)
+    stop_pipeline(df, norreport_forecast_path, norreport_results_path, save_test_only=False)
+
+    # iterate over clean stops    
+    for stop in data_path.iterdir():
+        if stop.name == 'clean_1A_norreport.csv': # skip norreport as it has its seperate pipeline
+            continue
+        
+        # load the data
+        df = pd.read_csv(stop)
+
+        # stop name (remove clean_1A_ and .csv) from name
+        stop_name = stop.stem[9:]
+
+        # results path 
+        other_results_path = results_path / "other_stops" / stop_name
+        other_results_path.mkdir(parents=True, exist_ok=True)
+
+        # run the pipeline
+        stop_pipeline(df, other_results_path, other_results_path, save_test_only=True)
+
+
 
 if __name__ == "__main__":
     main()
