@@ -1,13 +1,13 @@
 import pathlib
 import pandas as pd 
-from neuralprophet import NeuralProphet, set_log_level
-import matplotlib.pyplot as plt
+from neuralprophet import NeuralProphet
+
 
 def main():
     path = pathlib.Path(__file__)
 
-    data_path = path.parents[1] / "data" 
-    plot_dir = path.parents[1] / "plots"
+    data_path = path.parents[2] / "data" 
+    plot_dir = path.parents[2] / "plots"
     plot_dir.mkdir(exist_ok=True, parents=True)
 
     # read the data

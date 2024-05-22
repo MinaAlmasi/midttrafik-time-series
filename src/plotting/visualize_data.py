@@ -2,6 +2,9 @@ import pathlib
 import pandas as pd
 import matplotlib.pyplot as plt
 from statsmodels.tsa.seasonal import seasonal_decompose
+
+import sys 
+sys.path.append(str(pathlib.Path(__file__).parents[1]))
 from data_utils import impute_missing
 
 
@@ -97,8 +100,8 @@ def plot_decompose(df, freq:int=24, label_share:int=10, save_path=None, save_fil
 def main():
     # set paths
     path = pathlib.Path(__file__)
-    data_path = path.parents[1] / "data"
-    plot_dir = path.parents[1] / "plots" / "graphical_analysis"
+    data_path = path.parents[2] / "data"
+    plot_dir = path.parents[2] / "plots" / "graphical_analysis"
 
     # load data
     df = pd.read_csv(data_path / "processed_1A_norreport.csv")

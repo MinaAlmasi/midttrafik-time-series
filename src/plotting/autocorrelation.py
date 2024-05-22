@@ -5,6 +5,10 @@ from statsmodels.tsa.stattools import pacf
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 
+import sys 
+sys.path.append(str(pathlib.Path(__file__).parents[1]))
+from data_utils import impute_missing
+
 
 
 def plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrelation.png", save_dir=pathlib.Path(__file__).parents[1] / "plots"):
@@ -79,17 +83,17 @@ def plot_partial_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_pa
 def main():
     # set paths
     path = pathlib.Path(__file__)
-    data_dir = path.parents[1] / "data"
-    plot_dir = path.parents[1] / "plots"
+    data_dir = path.parents[2] / "data"
+    plot_dir = path.parents[2] / "plots"
 
     # load data
     data = pd.read_csv(data_dir / "processed_1A_norreport.csv")
 
-    # replace NA values with 0 
-    data.fillna(0, inplace=True)
+    # impute missing
+    data = impute_missing(data, method='rolling', window=24)
 
     # plots
-    #plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrelation.png", save_dir=plot_dir)
+    plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrelation.png", save_dir=plot_dir / "graphical_analysis")
 
     plot_partial_autocorrelation(data, n_lags=24*7+1, file_name="norreport_1A_partial_autocorrelation.png", save_dir=plot_dir)
 

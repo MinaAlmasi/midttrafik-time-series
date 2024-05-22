@@ -66,6 +66,9 @@ def plot_test_forecasts(actual_results, test_forecasts:dict, forecast_colors:lis
         plt.savefig(save_path / file_name)
 
 def load_np_forecasts(forecasts_path):
+    '''
+    Load forecasts from the NeuralProphet models
+    '''
     data = {}
 
     for file in forecasts_path.iterdir():
@@ -85,9 +88,9 @@ def load_np_forecasts(forecasts_path):
 def main(): 
     # set paths
     path = pathlib.Path(__file__)
-    forecasts_path = path.parents[1] / "results" / "forecasts"
-    data_path = path.parents[1] / "data"
-    plot_path = path.parents[1] / "plots" / "forecasts"
+    forecasts_path = path.parents[2] / "results" / "forecasts"
+    data_path = path.parents[2] / "data"
+    plot_path = path.parents[2] / "plots" / "forecasts"
 
     # load the data
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
