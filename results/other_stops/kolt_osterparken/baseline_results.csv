@@ -1,0 +1,4 @@
+model,mae_test,rmse_test
+Mean,1.691,2.164
+Naive,2.709,3.295
+Weekly Naive,1.109,1.504

@@ -164,11 +164,18 @@ def weekly_naive_model(df, df_vals, df_test):
 
     return mae_values, rmse_values, weekly_naive_test_forecasts
 
-def norreport_pipeline(df, forecast_path, results_path):
+def stop_pipeline(df, forecast_path, results_path, save_test_only=False):
     '''
-    Analysis pipeline for the norreport stop which is our main focus. 
+    Analysis pipeline for each stop. 
     Function will perform cross validation and test the models on the test set.
+
+    Args:
+        df: data
+        forecast_path: path to save the forecasts
+        results_path: path to save the results
+        save_test_only: if True, only save the test results (used for all stops except norreport)
     '''
+    
     # impute missing values
     df = impute_missing(df, method='rolling', window=24)
 
@@ -198,29 +205,55 @@ def norreport_pipeline(df, forecast_path, results_path):
     print(f'Weekly naive model MAE: {weekly_naive_mae}, RMSE: {weekly_naive_rmse}')
 
     # save the results
-    results = pd.DataFrame({"model": ['Mean', 'Naive', 'Weekly Naive'],
-                            'mean_mae_val': [mean_model_mae['val'], naive_mae['val'], weekly_naive_mae['val']],
-                            'mae_test': [mean_model_mae['test'], naive_mae['test'], weekly_naive_mae['test']],
-                            'mean_rmse_val': [mean_model_rmse['val'], naive_rmse['val'], weekly_naive_rmse['val']],
-                            'rmse_test': [mean_model_rmse['test'], naive_rmse['test'], weekly_naive_rmse['test']]})
+    if not save_test_only:
+        results = pd.DataFrame({"model": ['Mean', 'Naive', 'Weekly Naive'],
+                                'mean_mae_val': [mean_model_mae['val'], naive_mae['val'], weekly_naive_mae['val']],
+                                'mae_test': [mean_model_mae['test'], naive_mae['test'], weekly_naive_mae['test']],
+                                'mean_rmse_val': [mean_model_rmse['val'], naive_rmse['val'], weekly_naive_rmse['val']],
+                                'rmse_test': [mean_model_rmse['test'], naive_rmse['test'], weekly_naive_rmse['test']]})
+        
+    else: 
+        results = pd.DataFrame({"model": ['Mean', 'Naive', 'Weekly Naive'],
+                                'mae_test': [mean_model_mae['test'], naive_mae['test'], weekly_naive_mae['test']],
+                                'rmse_test': [mean_model_rmse['test'], naive_rmse['test'], weekly_naive_rmse['test']]})
     
     results.to_csv(results_path / 'baseline_results.csv', index=False)
+
 
 def main(): 
     # set paths
     path = pathlib.Path(__file__)
     data_path = path.parents[1] / 'data' / "clean_stops"
     results_path = path.parents[1] / 'results'
-    forecast_path = results_path / 'forecasts'
 
     # load the data
     df = pd.read_csv(data_path / 'clean_1A_norreport.csv')
 
-    # run the pipeline
-    norreport_pipeline(df, forecast_path, results_path)
+    # run the pipeline for norreport
+    norreport_results_path = results_path / "norreport"
+    norreport_forecast_path = norreport_results_path / "forecasts"
+    norreport_results_path.mkdir(parents=True, exist_ok=True)
+    norreport_forecast_path.mkdir(parents=True, exist_ok=True)
+    stop_pipeline(df, norreport_forecast_path, norreport_results_path, save_test_only=False)
 
-    # run other stops 
-    ## coming soon
+    # iterate over clean stops    
+    for stop in data_path.iterdir():
+        if stop.name == 'clean_1A_norreport.csv': # skip norreport as it has its seperate pipeline
+            continue
+        
+        # load the data
+        df = pd.read_csv(stop)
+
+        # stop name (remove clean_1A_ and .csv) from name
+        stop_name = stop.stem[9:]
+
+        # results path 
+        other_results_path = results_path / "other_stops" / stop_name
+        other_results_path.mkdir(parents=True, exist_ok=True)
+
+        # run the pipeline
+        stop_pipeline(df, other_results_path, other_results_path, save_test_only=True)
+
 
 
 if __name__ == "__main__":
