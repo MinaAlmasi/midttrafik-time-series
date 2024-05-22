@@ -48,54 +48,66 @@ def add_missing_dates(df, missing_dates:list):
 
     return df
 
-def main():
-    path = pathlib.Path(__file__)
-    plot_dir = path.parents[2] / "plots"
-    plot_dir.mkdir(exist_ok=True, parents=True)
-
-    # read the data
-    norreport_1A = pd.read_csv('data/1A_norreport.csv')
-
+def process_stop(stop_df):
     # remove all rows which has 2021 in date (formatted YYYY-MM-DD) using datetime (due to covid)
-    norreport_1A['year'] = pd.to_datetime(norreport_1A['date'])
-    norreport_1A = norreport_1A[norreport_1A['year'].dt.year != 2021]
+    stop_df['year'] = pd.to_datetime(stop_df['date'])
+    stop_df = stop_df[stop_df['year'].dt.year != 2021]
 
     # remove rows missing in actualarrivaltime or actualdeparturetime
-    norreport_1A = norreport_1A.dropna(subset=['actualarrivetime'])
-    norreport_1A = norreport_1A.dropna(subset=['actualdeparturetime'])
+    stop_df = stop_df.dropna(subset=['actualarrivetime'])
+    stop_df = stop_df.dropna(subset=['actualdeparturetime'])
     
     # remove duplicates 
-    norreport_1A = norreport_1A.drop_duplicates()
+    stop_df = stop_df.drop_duplicates()
 
     # keep only the 'hour' from scheduledtimearrive (HH:MM:SS)
-    norreport_1A['time_interval'] = norreport_1A['scheduledarrivetime'].str.split(':').str[0]
+    stop_df['time_interval'] = stop_df['scheduledarrivetime'].str.split(':').str[0]
 
     # subset to only relevant columns
-    norreport_1A = norreport_1A[['date', 'time_interval', 'Cumulative']]
+    stop_df = stop_df[['date', 'time_interval', 'Cumulative']]
 
     # create ds column based on date and time_interval
-    norreport_1A['ds'] = norreport_1A['date'] + ' ' + norreport_1A['time_interval']
+    stop_df['ds'] = stop_df['date'] + ' ' + stop_df['time_interval']
 
     # drop date and time_interval columns
-    norreport_1A = norreport_1A.drop(columns=['date', 'time_interval'])
+    stop_df = stop_df.drop(columns=['date', 'time_interval'])
 
     # rename cumulative to y
-    norreport_1A = norreport_1A.rename(columns={'Cumulative': 'y'})
+    stop_df = stop_df.rename(columns={'Cumulative': 'y'})
 
     # take the mean y for each ds
-    norreport_1A = norreport_1A.groupby('ds').mean().reset_index()
+    stop_df = stop_df.groupby('ds').mean().reset_index()
 
     # add missing time intervals
-    norreport_1A = add_missing_time_intervals(norreport_1A)
+    stop_df = add_missing_time_intervals(stop_df)
 
-    print(f"Length of the dataset: {len(norreport_1A)}")
+    print(f"Length of the dataset: {len(stop_df)}")
 
     # add missing dates (these are the days where 1A did not drive due to massive snowfall)
     missing_dates = ["2024-01-03", "2024-01-04", "2024-01-06", "2024-01-07", "2024-01-08"] # note that the busses drove on 2024-01-05, but not the rest of the period
-    norreport_1A = add_missing_dates(norreport_1A, missing_dates)
+    stop_df = add_missing_dates(stop_df, missing_dates)
 
-    # save 
-    norreport_1A.to_csv('data/processed_1A_norreport.csv', index=False)
+    return stop_df
+
+def main():
+    # set paths for directories
+    path = pathlib.Path(__file__)
+    plot_dir = path.parents[2] / "plots"
+    plot_dir.mkdir(exist_ok=True, parents=True)
+    data_dir = path.parents[2] / "data" / "raw_stops"
+
+    # iterate over all stops and process
+    for stop in data_dir.iterdir():
+        print(f"[INFO:] Processing {stop.stem}")
+
+        # read the data
+        stop_df = pd.read_csv(stop)
+
+        # process the data
+        stop_df = process_stop(stop_df)
+
+        # save the processed data
+        stop_df.to_csv(path.parents[2] / "data" / "clean_stops" / f"clean_{stop.stem}.csv", index=False)
 
 if __name__ == "__main__":
     main()

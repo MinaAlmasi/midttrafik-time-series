@@ -6,6 +6,13 @@ import sys
 sys.path.append(str(pathlib.Path(__file__).parents[1]))
 from data_utils import read_data
 
+stops = {"norreport": 751301201, 
+         "kolt_osterparken": 751473002,
+         "hasselager_alle": 751422802,
+         "park_alle": 751001502,
+         "vejlby_centervej_grenåvej": 751100201
+         }
+
 def main(): 
     # define path
     path = pathlib.Path(__file__)
