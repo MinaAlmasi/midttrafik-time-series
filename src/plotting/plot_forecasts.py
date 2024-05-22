@@ -85,22 +85,10 @@ def load_np_forecasts(forecasts_path):
 
     return data 
 
-def main(): 
-    # set paths
-    path = pathlib.Path(__file__)
-    forecasts_path = path.parents[2] / "results" / "forecasts"
-    data_path = path.parents[2] / "data"
-    plot_path = path.parents[2] / "plots" / "forecasts"
-
-    # load the data
-    df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
-    
-    # set data
-    gap = 24
-    test_size = 36
-    
+def norreport_forecasts(norreport_df, forecasts_path, save_path):
+   
     # subset to last 72 hours (36 test, 24 gap, 12 train)
-    actual_results = df.iloc[-72:]
+    actual_results = norreport_df.iloc[-72:]
 
     # load the baseline forecasts
     mm_forecast = pd.read_csv(forecasts_path / "mm_forecast.csv")
@@ -120,15 +108,73 @@ def main():
         "Weekly Naive": weekly_naive_forecast['y'],
     }
 
-
     # create a plot for the np models
-    plot_test_forecasts(actual_results, np_forecasts, forecast_colors=['red', 'blue', 'green', 'orange', 'purple'], save_path=plot_path, file_name='np_forecasts.png')
+    plot_test_forecasts(actual_results, np_forecasts, forecast_colors=['red', 'blue', 'green', 'orange', 'purple'], save_path=save_path, file_name='norreport_np_forecasts.png')
 
     # create a plot for only SARIMA
-    plot_test_forecasts(actual_results, {"SARIMA": sarima_forecast['y']}, forecast_colors=['orange'], save_path=plot_path, file_name='sarima_forecast.png')
+    plot_test_forecasts(actual_results, {"SARIMA": sarima_forecast['y']}, forecast_colors=['orange'], save_path=save_path, file_name='norreport_sarima_forecast.png')
 
     # create a plot for only the baselines
-    plot_test_forecasts(actual_results, baseline_forecasts, forecast_colors=['red', 'blue', 'green'], save_path=plot_path, file_name='baseline_forecasts.png')
+    plot_test_forecasts(actual_results, baseline_forecasts, forecast_colors=['red', 'blue', 'green'], save_path=save_path, file_name='norreport_baseline_forecasts.png')
+
+def other_stops_forecast(df, stop_name, results_path, plot_path):
+    '''
+    Plot the forecasts for the other stops
+    '''
+    # subset to last 72 hours (36 test, 24 gap, 12 train)
+    actual_results = df.iloc[-72:]
+
+    # load the weekly naive forecast
+    weekly_naive_forecast = pd.read_csv(results_path / "weekly_naive_forecast.csv")
+
+    # load the sarima forecast
+    sarima_forecast = pd.read_csv(results_path / "sarima_forecast.csv")
+    
+    # load the neuralprophet forecasts
+    np_forecast = pd.read_csv(results_path / "np37_forecast.csv")
+
+    # create a dict with all three forecasts
+    forecasts = {"Weekly Naive": weekly_naive_forecast['y'], 
+                 "SARIMA": sarima_forecast['y'], 
+                 "NeuralProphet 37": np_forecast['y']}
+
+    # create a plot for the three models
+    plot_test_forecasts(actual_results, forecasts, forecast_colors=['green', 'orange', 'purple'], save_path=plot_path, file_name=f'{stop_name}_forecasts.png')
+
+
+def main(): 
+    # set paths
+    path = pathlib.Path(__file__)
+    results_path = path.parents[2] / "results"
+    data_path = path.parents[2] / "data" / "clean_stops"
+    plot_path = path.parents[2] / "plots" / "forecasts"
+
+    # set norreport paths
+    norreport_forecast = results_path / "norreport" / "forecasts"
+
+    # load the norreport data
+    df = pd.read_csv(data_path / 'clean_1A_norreport.csv')
+
+    # plot the forecasts for norreport
+    norreport_forecasts(df, norreport_forecast, plot_path)
+
+    # iterate over the other stops
+    for stop in data_path.iterdir():
+        if stop.name == 'clean_1A_norreport.csv': # skip norreport as it has its seperate pipeline
+            continue
+        
+        # load the data
+        df = pd.read_csv(stop)
+
+        # stop name (remove clean_1A_ and .csv) from name
+        stop_name = stop.stem[9:]
+
+        # results path 
+        other_results_path = results_path / "other_stops" / stop_name
+
+        # run the pipeline
+        other_stops_forecast(df, stop_name, other_results_path, plot_path, )
+
 
 
 if __name__ == "__main__":
