@@ -172,35 +172,10 @@ def weekly_naive_model(df, df_vals, df_test):
 
     return mae_values, rmse_values, weekly_naive_test_forecasts
 
-def plot_naive_horizon(results, save_path=None, file_name=None):
-    '''
-    Plot the MAE as a function of the horizon
-    '''
-    # group by horizon and calculate the mean and sd
-    results = results.groupby('horizon').agg({'mae': ['mean', 'std']}).reset_index()
-
-    # plot as a line plot with shaded error
-    plt.figure(figsize=(10, 6))
-
-    plt.plot(results['horizon'], results['mae']['mean'], color='blue')
-
-    plt.fill_between(results['horizon'],
-                        results['mae']['mean'] - results['mae']['std'],
-                        results['mae']['mean'] + results['mae']['std'],
-                        color='blue', alpha=0.2)
-
-    plt.xlabel('Horizon')
-    plt.ylabel('MAE')
-
-    # save 
-    if save_path and file_name:
-        save_path.mkdir(parents=True, exist_ok=True)
-        plt.savefig(save_path / file_name)
-
 def main(): 
     # set paths
     path = pathlib.Path(__file__)
-    data_path = path.parents[1] / 'data'
+    data_path = path.parents[1] / 'data' / "clean_stops"
     forecast_path = path.parents[1] / 'results' / 'forecasts'
 
     # load the data
@@ -219,8 +194,6 @@ def main():
 
     # fit the naive model
     naive_mae, naive_rmse, naive_forecast, naive_results = naive_model(df_trains, df_vals, df_test.copy())
-
-    #plot_naive_horizon(naive_results, save_path=path.parents[1] / 'plots', file_name='naive_horizon.png')
     
     # fit the weekly naive model
     weekly_naive_mae, weekly_naive_rmse, weekly_naive_forecast = weekly_naive_model(df, df_vals, df_test.copy())
