@@ -103,10 +103,10 @@ def cross_validate(df, train_inds:dict, val_inds:dict, params:dict, freq="1h", n
 def main():
     # set paths
     path = pathlib.Path(__file__)
-    data_path = path.parents[2] / 'data'
+    data_path = path.parents[2] / 'data' / "clean_stops"
 
     # load data and impute missing values
-    df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
+    df = pd.read_csv(data_path / 'clean_1A_norreport.csv')
     df = impute_missing(df, method='rolling', window=24)
 
     # hyperparameters to explore
@@ -134,7 +134,7 @@ def main():
     train_inds, val_inds, _ = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size) # no need for test_inds here!
 
     # Setup results path and unique filename
-    results_dir = path.parents[2] / "results" / "neural-prophet"
+    results_dir = path.parents[2] / "results" / "norreport" / "neural-prophet-grid-search"
     results_dir.mkdir(exist_ok=True, parents=True)
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = results_dir / f'np_gridsearch_{timestamp}.csv'
