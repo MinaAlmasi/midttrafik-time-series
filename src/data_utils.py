@@ -136,27 +136,3 @@ def impute_missing(df, method='rolling', window=24):
         raise ValueError(f"Method {method} not recognized. Please use 'linear' or 'rolling'.")
 
     return df
-
-
-def main(): 
-    # set paths
-    path = pathlib.Path(__file__)
-    data_path = path.parents[1] / 'data'
-
-    # load the data
-    df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
-
-    # split the data
-    gap = 24
-    max_train_size = 24 * 7 * 2 # 24 hours x 7 (days) x 2 (weeks)
-    #generator = split_timeseries_data(df['ds'], gap=gap, val_size=48, max_train_size=max_train_size)
-    train_inds, val_inds, test_inds = split_rolling_origin(df['ds'], gap=gap, val_size=36, steps=4, min_train_size=24*7)
-
-    print(train_inds.keys())
-    print(val_inds[553])
-    #print(train_inds[0])
-    print(test_inds)
-
-
-if __name__ == "__main__":
-    main()
