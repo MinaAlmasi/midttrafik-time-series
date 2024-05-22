@@ -1,6 +1,9 @@
 import pathlib
 from neuralprophet import NeuralProphet
 import pandas as pd
+
+import sys 
+sys.path.append(str(pathlib.Path(__file__).parents[1]))
 from data_utils import split_rolling_origin, impute_missing
 
 def refit_model(df_full_train:pd.DataFrame, params:dict, freq="1h"):
@@ -60,9 +63,9 @@ def evaluate_model(df_full_train, dropped_inds, df_test, model, gap=24):
 def main(): 
     # set paths
     path = pathlib.Path(__file__)
-    data_path = path.parents[1] / "data"
-    results_path = path.parents[1] / "results"
-    neuralprophet_path = results_path / "neuralprophet"
+    data_path = path.parents[2] / "data"
+    results_path = path.parents[2] / "results"
+    neuralprophet_path = results_path / "neural-prophet"
 
     # load data and impute missing
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
