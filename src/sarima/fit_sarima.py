@@ -74,10 +74,10 @@ def cross_validate(df, train_inds, val_inds, order:tuple, seasonal_order:tuple, 
 def main():
     # set paths
     path = pathlib.Path(__file__)
-    data_path = path.parents[2] / "data"
+    data_path = path.parents[2] / "data" / "clean_stops"
 
     # load data
-    df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
+    df = pd.read_csv(data_path / 'clean_1A_norreport.csv')
 
     # impute missing values
     df = impute_missing(df, method='rolling', window=24)
@@ -97,7 +97,7 @@ def main():
 
     # cross validate
     n_cores = mp.cpu_count() - 1
-    metrics = cross_validate(df, train_inds, val_inds, order, seasonal_order, n_cores=n_cores, save_dir=path.parents[2] / "results")
+    metrics = cross_validate(df, train_inds, val_inds, order, seasonal_order, n_cores=n_cores, save_dir=path.parents[2] / "results" / "norreport")
 
 if __name__ == "__main__":
     main()

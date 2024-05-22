@@ -10,10 +10,10 @@ from data_utils import split_rolling_origin, impute_missing
 def main():
     # set paths
     path = pathlib.Path(__file__)
-    data_path = path.parents[2] / "data"
+    data_path = path.parents[2] / "data" / "clean_stops"
 
     # load data
-    df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
+    df = pd.read_csv(data_path / 'clean_1A_norreport.csv')
 
     # impute missing values
     df = impute_missing(df, method='rolling', window=24)
@@ -38,7 +38,7 @@ def main():
 
     print(model.summary())
 
-    results_dir = path.parents[2] / "results"
+    results_dir = path.parents[2] / "results" / "norreport"
     with open(results_dir / "auto_arima_results.txt", "w") as file:
         file.write(str(model.summary()))
     
