@@ -29,7 +29,7 @@ def main():
     # set paths
     path = pathlib.Path(__file__)
     data_path = path.parents[2] / "data"
-    results_path = path.parents[2] / "results" / "forecasts"
+    results_path = path.parents[2] / "results"
 
     # load data
     df = pd.read_csv(data_path / 'processed_1A_norreport.csv')
@@ -62,9 +62,18 @@ def main():
     model_fit = model.fit()
 
     # evaluate model
-    mae_test, rmse_test, y_pred = evaluate_model(model_fit, df_test, save_path=results_path / 'sarima_forecast.csv')
+    mae_test, rmse_test, y_pred = evaluate_model(model_fit, df_test, save_path=results_path / "forecasts" / 'sarima_forecast.csv')
     print(f"MAE test: {mae_test}")
     print(f"RMSE test: {rmse_test}")
+
+    # save results with the train-val results 
+    train_val_df = pd.read_csv(results_path / 'sarima_train_val.csv')
+
+    # add the test results
+    train_val_df['mae_test'] = mae_test
+    train_val_df['rmse_test'] = rmse_test
+
+    train_val_df.to_csv(results_path / 'sarima_results.csv', index=False)
 
 
 if __name__ == "__main__":

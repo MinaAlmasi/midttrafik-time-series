@@ -67,7 +67,7 @@ def cross_validate(df, train_inds, val_inds, order:tuple, seasonal_order:tuple, 
 
     # save to csv 
     if save_dir: 
-        metrics.to_csv(save_dir / f"SARIMA_{order}_{seasonal_order}.csv", index=False)
+        metrics.to_csv(save_dir / f"sarima_train_val.csv", index=False)
 
     return metrics
 
