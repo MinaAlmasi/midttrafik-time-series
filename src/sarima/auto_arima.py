@@ -34,7 +34,15 @@ def main():
     train_data = df.iloc[last_train_inds]
     
     # use auto_arima to find the best model (d and D are set based on values found in stationarity.py)
-    model = auto_arima(train_data['y'], seasonal=True, m=24, d=1, D=0, stepwise=True, stationary=False, test="kpss", trace=3)
+    model = auto_arima( 
+                        train_data['y'], 
+                        seasonal=True, m=24, 
+                        d=1, D=1, 
+                        stepwise=True, stationary=False, 
+                        test="kpss",
+                        start_p=1, start_P=1,
+                        trace=3, 
+                        )
 
     print(model.summary())
 

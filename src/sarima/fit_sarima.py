@@ -93,7 +93,7 @@ def main():
 
     # (best model found by auto_arima.py)
     order = (2, 1, 0) # p, d, q
-    seasonal_order = (2, 0, 0, 24) # P, D, Q, m
+    seasonal_order = (2, 1, 0, 24) # P, D, Q, m
 
     # cross validate
     n_cores = mp.cpu_count() - 1

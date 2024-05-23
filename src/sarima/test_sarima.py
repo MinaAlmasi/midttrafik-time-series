@@ -40,7 +40,7 @@ def stop_pipeline(df, forecast_path, results_path, save_test_only=False):
 
     # (best model found by auto_arima.py)
     order = (2, 1, 0) # p, d, q
-    seasonal_order = (2, 0, 0, 24) # P, D, Q, m
+    seasonal_order = (2, 1, 0, 24) # P, D, Q, m (or s)
 
     # add gap to the test indices
     dropped_inds = df.index[-(len(test_inds) + gap-1):].tolist()

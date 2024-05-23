@@ -35,7 +35,7 @@ def main():
     print(f"Standard differencing term (d): {d}")
 
     # estimate seasonal differencing term (D)
-    D = nsdiffs(df['y'], m=24, test='ocsb')
+    D = nsdiffs(df['y'], m=24, test='ch')
     print(f"Seasonal differencing term (D): {D}")
 
     # differencing the data according to d and D
