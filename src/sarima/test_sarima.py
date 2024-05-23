@@ -39,7 +39,7 @@ def stop_pipeline(df, forecast_path, results_path, save_test_only=False):
     _, _, test_inds = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size) 
 
     # (best model found by auto_arima.py)
-    order = (2, 1, 0) # p, d, q
+    order = (5, 1, 0) # p, d, q
     seasonal_order = (2, 1, 0, 24) # P, D, Q, m (or s)
 
     # add gap to the test indices

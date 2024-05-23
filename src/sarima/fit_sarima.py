@@ -92,7 +92,7 @@ def main():
     train_inds, val_inds, _ = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size) # no need for test_inds here!
 
     # (best model found by auto_arima.py)
-    order = (2, 1, 0) # p, d, q
+    order = (5, 1, 0) # p, d, q
     seasonal_order = (2, 1, 0, 24) # P, D, Q, m
 
     # cross validate
