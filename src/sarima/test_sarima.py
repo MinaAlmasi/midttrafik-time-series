@@ -39,7 +39,7 @@ def stop_pipeline(df, forecast_path, results_path, save_test_only=False):
     _, _, test_inds = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size) 
 
     # (best model found by auto_arima.py)
-    order = (2, 1, 0) # p, d, q
+    order = (5, 1, 0) # p, d, q
     seasonal_order = (2, 1, 0, 24) # P, D, Q, m (or s)
 
     # add gap to the test indices
@@ -85,6 +85,7 @@ def main():
 
         
     # run on norreport
+    print(f"[INFO:] Working on norreport")
     norreport_results_path = results_path / "norreport"
     norreport_forecast_path = norreport_results_path / "forecasts"
     norreport_results_path.mkdir(parents=True, exist_ok=True)
@@ -96,7 +97,7 @@ def main():
     for stop in data_path.iterdir():
         if stop.name == 'clean_1A_norreport.csv': # skip norreport as it has its seperate pipeline
             continue
-        
+    
         # load the data
         df = pd.read_csv(stop)
 
@@ -108,10 +109,8 @@ def main():
         other_results_path.mkdir(parents=True, exist_ok=True)
 
         # run the pipeline
+        print(f"[INFO:] Working on {stop_name}")
         stop_pipeline(df, other_results_path, other_results_path, save_test_only=True)
-    
-
-
     
 
 

@@ -2,8 +2,9 @@ import pathlib
 import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import numpy as np
+from tqdm import tqdm
+
 import sys
-import multiprocessing as mp
 
 sys.path.append(str(pathlib.Path(__file__).parents[1]))
 from data_utils import split_rolling_origin, impute_missing
@@ -15,6 +16,8 @@ def cv_single_fold(df, train_ind, val_ind, order:tuple, seasonal_order:tuple):
     '''
     df_train = df.iloc[train_ind]
     df_val = df.iloc[val_ind]
+
+    print(f"Length of Training: {len(df_train)}")
 
     # fit the model
     model = SARIMAX(df_train['y'], order=order, seasonal_order=seasonal_order)
@@ -45,14 +48,18 @@ def cross_validate(df, train_inds, val_inds, order:tuple, seasonal_order:tuple, 
     '''
     Cross validate SARIMA model
     '''
-    # prep args for mp
-    processes = []
-    for (train_ind, val_ind) in zip(train_inds.values(), val_inds.values()):
-        args = (df, train_ind, val_ind, order, seasonal_order)
-        processes.append(args)
+    mae_trains = []
+    mae_vals = []
+    rmse_trains = []
+    rmse_vals = []
     
-    with mp.Pool(n_cores) as pool:
-        mae_trains, mae_vals, rmse_trains, rmse_vals = zip(*pool.starmap(cv_single_fold, processes)) # unpack results
+    # run the cross-validation for all folds
+    for (train_ind, val_ind) in tqdm(zip(train_inds.values(), val_inds.values()), total=len(train_inds.values())):
+        mae_train, mae_val, rmse_train, rmse_val = cv_single_fold(df, train_ind, val_ind, order, seasonal_order)
+        mae_trains.append(mae_train)
+        mae_vals.append(mae_val)
+        rmse_trains.append(rmse_train)
+        rmse_vals.append(rmse_val)
 
     # calculate mean and standard deviation of the results
     metrics = {}
@@ -92,11 +99,11 @@ def main():
     train_inds, val_inds, _ = split_rolling_origin(df['ds'], gap=gap, test_size=test_size, steps=steps, min_train_size=min_train_size) # no need for test_inds here!
 
     # (best model found by auto_arima.py)
-    order = (2, 1, 0) # p, d, q
+    order = (5, 1, 0) # p, d, q
     seasonal_order = (2, 1, 0, 24) # P, D, Q, m
 
     # cross validate
-    n_cores = mp.cpu_count() - 1
+    n_cores = 1
     metrics = cross_validate(df, train_inds, val_inds, order, seasonal_order, n_cores=n_cores, save_dir=path.parents[2] / "results" / "norreport")
 
 if __name__ == "__main__":
