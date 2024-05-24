@@ -2,13 +2,13 @@ import pathlib
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def plot_test_forecasts(actual_results, test_forecasts:dict, forecast_colors:list, save_path=None, file_name=None):
+def plot_test_forecasts(actual_results, test_forecasts:dict, forecast_colors:list, figsize=(15,12), heading_fontsize=22, legend_outside=False, save_path=None, file_name=None):
     '''
     Plot the test forecasts against the true values
     '''
 
     # set the figure
-    plt.figure(figsize=(24, 12))
+    plt.figure(figsize=figsize)
 
     # change font to times new roman
     plt.rcParams['font.family'] = 'Times New Roman'
@@ -53,17 +53,18 @@ def plot_test_forecasts(actual_results, test_forecasts:dict, forecast_colors:lis
     plt.axvspan(actual_results['ds'].iloc[36], actual_results['ds'].iloc[-1], color='grey', alpha=0.1)
 
     # add labels for the shaded areas
-    plt.text(actual_results['ds'].iloc[6], 56, 'TRAINING PHASE \n(partially shown)', fontsize=22, horizontalalignment='center', weight='bold', verticalalignment='center')
-    plt.text(actual_results['ds'].iloc[24], 56, 'GAP', fontsize=22, horizontalalignment='center', weight='bold')
-    plt.text(actual_results['ds'].iloc[54], 56, 'TESTING PHASE', fontsize=22, horizontalalignment='center', weight='bold')
+    plt.text(actual_results['ds'].iloc[6], 56, 'TRAINING \n(partially shown)', fontsize=heading_fontsize, horizontalalignment='center', weight='bold', verticalalignment='center')
+    plt.text(actual_results['ds'].iloc[24], 56, 'GAP', fontsize=heading_fontsize, horizontalalignment='center', weight='bold')
+    plt.text(actual_results['ds'].iloc[54], 56, 'TESTING', fontsize=heading_fontsize, horizontalalignment='center', weight='bold')
 
-    # ensure tight layout
-    plt.tight_layout()
+    # place legend on top of the plot if legend_outside is True
+    if legend_outside:
+        plt.legend(fontsize=20, loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=4)
 
     # save
     if save_path and file_name:
         save_path.mkdir(parents=True, exist_ok=True)
-        plt.savefig(save_path / file_name)
+        plt.savefig(save_path / file_name, bbox_inches='tight')
 
 def load_np_forecasts(forecasts_path):
     '''
@@ -109,13 +110,21 @@ def norreport_forecasts(norreport_df, forecasts_path, save_path):
     }
 
     # create a plot for the np models
-    plot_test_forecasts(actual_results, np_forecasts, forecast_colors=['red', 'blue', 'green', 'orange', 'purple'], save_path=save_path, file_name='norreport_np_forecasts.png')
+    figsize = (24, 12)
+    heading_fontsize = 20
+    plot_test_forecasts(actual_results, np_forecasts, forecast_colors=['red', 'blue', 'green', 'orange', 'purple'], 
+                        figsize=figsize, heading_fontsize=heading_fontsize,
+                        save_path=save_path, file_name='norreport_np_forecasts.png')
 
     # create a plot for only SARIMA
-    plot_test_forecasts(actual_results, {"SARIMA": sarima_forecast['y']}, forecast_colors=['orange'], save_path=save_path, file_name='norreport_sarima_forecast.png')
+    plot_test_forecasts(actual_results, {"SARIMA": sarima_forecast['y']}, forecast_colors=['orange'],
+                        figsize=figsize, heading_fontsize=heading_fontsize, 
+                        save_path=save_path, file_name='norreport_sarima_forecast.png')
 
     # create a plot for only the baselines
-    plot_test_forecasts(actual_results, baseline_forecasts, forecast_colors=['red', 'blue', 'green'], save_path=save_path, file_name='norreport_baseline_forecasts.png')
+    plot_test_forecasts(actual_results, baseline_forecasts, forecast_colors=['red', 'blue', 'green'], 
+                        figsize=figsize, heading_fontsize=heading_fontsize,
+                        save_path=save_path, file_name='norreport_baseline_forecasts.png')
 
 def other_stops_forecast(df, stop_name, results_path, plot_path):
     '''
@@ -139,7 +148,11 @@ def other_stops_forecast(df, stop_name, results_path, plot_path):
                  "NeuralProphet 37": np_forecast['y']}
 
     # create a plot for the three models
-    plot_test_forecasts(actual_results, forecasts, forecast_colors=['green', 'orange', 'purple'], save_path=plot_path, file_name=f'{stop_name}_forecasts.png')
+    figsize = (15, 12)
+    heading_fontsize = 17
+    plot_test_forecasts(actual_results, forecasts, forecast_colors=['green', 'orange', 'purple'], 
+                        figsize=figsize, heading_fontsize=heading_fontsize,
+                        save_path=plot_path, file_name=f'{stop_name}_forecasts.png', legend_outside=True)
 
 
 def main(): 
