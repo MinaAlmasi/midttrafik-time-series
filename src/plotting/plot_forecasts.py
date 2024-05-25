@@ -64,7 +64,7 @@ def plot_test_forecasts(actual_results, test_forecasts:dict, forecast_colors:lis
     # save
     if save_path and file_name:
         save_path.mkdir(parents=True, exist_ok=True)
-        plt.savefig(save_path / file_name, bbox_inches='tight')
+        plt.savefig(save_path / file_name, bbox_inches='tight', dpi=300)
 
 def load_np_forecasts(forecasts_path):
     '''
