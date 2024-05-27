@@ -28,11 +28,12 @@ The repository is structured as such:
 For a greater overview of the Python code, see the [src/README.md](src/README.md).
 
 ## 💻 Technical Requirements
-Grid search and model training was run via  Ubuntu v22.04.3, Python v3.10.12 (UCloud, Coder Python 1.86.2). Other analysis work such as plotting was done locally on a Macbook Pro ‘13 (2020, 2 GHz Intel i5, 16GB of ram). 
+Grid search and model training was run via  Ubuntu 22.04.3, Python 3.10.12 (UCloud, Coder Python 1.87.2). Other analysis work such as plotting was done locally on a Macbook Pro ‘13 (2020, 2 GHz Intel i5, 16GB of ram). Python's [venv](https://docs.python.org/3.10/library/venv.html) need to be installed for the code to run as intended. 
 
-Python's venv need to be installed for the code to run as intended. 
+Code should also work on Python 3.12 although this cannot be guaranteed for all parts of the pipeline.
 
-*Please also note that the advanced models were computionally intensive and were run on a 64 machine on UCloud* 
+
+*Please also note that the advanced models were computionally intensive and were run on a 64 machine on UCloud*. 
 
 ## 🛠️ Setup
 Prior to running the code, run the command below to create a virtual environment (`env`) and install necessary packages within it: 
