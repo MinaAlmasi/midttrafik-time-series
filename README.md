@@ -42,7 +42,7 @@ bash setup.sh
 ```
 
 ##  🚀 Usage 
-To run any script, you can type specify the script's path in the terminal as such (with the `env`active):
+To run any script in the `src` folder, you can type specify the script's path in the terminal (with the `env`active):
 ```bash
 # activate env
 source env/bin/activate
@@ -53,7 +53,7 @@ python src/neural-prophet/test_prophet.py
 # quit env 
 deactivate
 ```
-For the full overview of scripts, please refer to the [Project Overview](#project-overview) and [src/README.md](src/README.md). Note that you cannot run most files in `process_data` as the raw data is not available on Git.
+See also [src/README.md](src/README.md) for the scripts overview. Note that you cannot run most files in `process_data` as the raw data is not available on Git.
 
 ## 🌟 Acknowledgements 
 This work was only possible thanks to our data provider, Midttrafik.
