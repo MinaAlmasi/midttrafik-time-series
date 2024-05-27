@@ -18,10 +18,10 @@ To run the pipeline, see the [Setup](#️-setup) and [Usage](#-usage) sections. 
 The repository is structured as such: 
 | Folder/File               | Description |
 |---------------------------|-------------|
-| `data/`                   | Contains five bus stops from 1A (raw and aggregated)|
-| `raw_data/`               | Empty folder where the raw data can be placed for the initial processing to run |
-| `plots/`                  | Plots used in the paper and appendix |
-| `results/`                | Evaluation results and forecasts for the main analysis |
+| `data/`                   | Contains five bus stops from 1A (raw and aggregated).|
+| `raw_data/`               | Empty folder where the raw data can be placed for the initial processing to run. |
+| `plots/`                  | Plots used in the paper and appendix. |
+| `results/`                | Evaluation results and forecasts for the main analysis. |
 | `src/`                    | Python code related to the project. |
 
 
