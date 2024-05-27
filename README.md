@@ -12,7 +12,7 @@
 ## 🚌 About 
 This repository contains scripts for developing a pipeline to forecast passenger occupancy at various bus stops on Midttrafik's route 1A in Aarhus. We trained several *NeuralProphet models* (via grid search), a *SARIMA* model, and three baselines. The main analysis was focused on the bus stop *Nørreport*. 
 
-To reproduce the pipeline, see the [Setup](#️-setup) and [Usage](#-usage) sections. Note that the initial preprocessing of `1A` cannot be reproduced as the file is not shareable. However, data for the five processed bus stops is available in the `data` folder.
+To run the pipeline, see the [Setup](#️-setup) and [Usage](#-usage) sections. Note that the initial preprocessing of `1A` cannot be reproduced as the file is not shareable. However, data for the five processed bus stops is available in the `data` folder, allowing the rest of the pipeline to be run.
 
 ### Project Overview
 The repository is structured as such: 
