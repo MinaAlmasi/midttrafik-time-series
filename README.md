@@ -42,7 +42,7 @@ bash setup.sh
 ```
 
 ##  🚀 Usage 
-To run any script in the `src` folder, you can type specify the script's path in the terminal (with the `env`active):
+To run any script in the `src` folder, you can type specify the script's path in the terminal (with the `env` active):
 ```bash
 # activate env
 source env/bin/activate
