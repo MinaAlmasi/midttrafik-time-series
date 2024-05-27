@@ -44,10 +44,9 @@ def plot_timeseries(df, figsize:tuple=(40,10), ylim:tuple=(0,75), label_share=10
     plt.tight_layout()
 
     if save_path and save_file:
-        plt.savefig(save_path / save_file, dpi=200)  # ensure to use plt.savefig for correct saving
+        plt.savefig(save_path / save_file, dpi=300)  # ensure to use plt.savefig for correct saving
 
     return ts_plot
-
 
 def plot_decompose(df, freq:int=24, label_share:int=10, save_path=None, save_file=None):
     # set font to Times New Roman
@@ -100,35 +99,36 @@ def plot_decompose(df, freq:int=24, label_share:int=10, save_path=None, save_fil
 def main():
     # set paths
     path = pathlib.Path(__file__)
-    data_path = path.parents[2] / "data"
+    data_path = path.parents[2] / "data" / "clean_stops"
     plot_dir = path.parents[2] / "plots" / "graphical_analysis"
 
     # load data
-    df = pd.read_csv(data_path / "processed_1A_norreport.csv")
+    df = pd.read_csv(data_path / "clean_1A_norreport.csv")
 
-    # plot the timeseries for Cumulative
+    ## VISUALIZE RAW TIME SERIES ##
+    # full time series
     plot_timeseries(df, figsize=(25,10), ylim=(0,75), label_share = 500, save_path=plot_dir, save_file="norreport_1A_ts.png", linewidth=0.8)
 
-    # create another plot that is zoomed into the last two month (24 hours x 30 days * 2 months)
-    df_recent = df.tail(2*24*30)
-    plot_timeseries(df_recent, figsize=(25,10), ylim=(0,65), label_share = 40, save_path=plot_dir, save_file="norreport_1A_ts_recent.png", linewidth=2)
+    # last two months (24 hours x 30 days * 2 months)
+    df_two_months = df.tail(24*30*2)
+    plot_timeseries(df_two_months, figsize=(25,10), ylim=(0,65), label_share = 40, save_path=plot_dir, save_file="norreport_1A_ts_two_months.png", linewidth=2)
 
-    # create another that is just the last two days
+    # last two days 
     df_two_days = df.tail(2*24)
     plot_timeseries(df_two_days, figsize=(25,10), ylim=(0,60), label_share = 2, save_path=plot_dir, save_file="norreport_1A_ts_two_days.png", linewidth=3)
 
-    # create a custom subset that covers the snowstorm days (from 03-01-2024 to 08-01-2024)
+    # snowstorm days (from 03-01-2024 to 08-01-2024)
     df_snowstorm = df[(df['ds'] >= '2023-12-25') & (df['ds'] <= '2024-01-15')]
     plot_timeseries(df_snowstorm, figsize=(25,10), ylim=(0,60), label_share = 10, save_path=plot_dir, save_file="norreport_1A_ts_snowstorm.png", linewidth=3)
 
-    # impute missing before decomposing
+    ## DECOMPOSED TIME SERIES ## 
     df = impute_missing(df, method='rolling', window=24)
     
-    # plot the decomposed timeseries
+    # full time series 
     plot_decompose(df, freq=24, label_share = 800, save_path=plot_dir, save_file="norreport_1A_decompose.png")
 
-    # plot the decomposed timeseries for the last two days
-    plot_decompose(df_recent, freq=24, label_share = 100, save_path=plot_dir, save_file="norreport_1A_decompose_recent.png")
+    # last two months 
+    plot_decompose(df_two_months, freq=24, label_share = 100, save_path=plot_dir, save_file="norreport_1A_decompose_two_months.png")
 
 if __name__ == "__main__":
     main()
