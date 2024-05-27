@@ -9,3 +9,5 @@ The `src` folder contains the following:
 | `fit_baselines.py`         | Evaluate and do forecasts with baseline models. |
 | `data_utils.py`         | Functions for data loading, spliting and imputation used in various scripts.|
 | `table_to_latex.py`         | Convert grid search results of neural-prophet to a neat latex table.|
+
+❕ Note that you cannot run any files except `process_stops.py` in the `process_data` folder as the raw data is not available on Git.
