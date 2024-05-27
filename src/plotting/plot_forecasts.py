@@ -55,7 +55,7 @@ def plot_test_forecasts(actual_results, test_forecasts:dict, forecast_colors:lis
     # add labels for the shaded areas
     plt.text(actual_results['ds'].iloc[6], 56, 'TRAINING \n(partially shown)', fontsize=heading_fontsize, horizontalalignment='center', weight='bold', verticalalignment='center')
     plt.text(actual_results['ds'].iloc[24], 56, 'GAP', fontsize=heading_fontsize, horizontalalignment='center', weight='bold')
-    plt.text(actual_results['ds'].iloc[54], 56, 'TESTING', fontsize=heading_fontsize, horizontalalignment='center', weight='bold')
+    plt.text(actual_results['ds'].iloc[54], 56, 'FORECASTING', fontsize=heading_fontsize, horizontalalignment='center', weight='bold')
 
     # place legend on top of the plot if legend_outside is True
     if legend_outside:
