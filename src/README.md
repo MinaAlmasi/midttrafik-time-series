@@ -10,4 +10,4 @@ The `src` folder contains the following:
 | `data_utils.py`         | Functions for data loading, spliting and imputation used in various scripts.|
 | `table_to_latex.py`         | Convert grid search results of neural-prophet to a neat latex table.|
 
-❕ Note that you cannot run any files except `process_stops.py` in the `process_data` folder as the raw data is not available on Git.
+❕ Note that `process_data` only has one file that can be run (`process_stops.py`) as the rest require the raw data which is not available on Git.
