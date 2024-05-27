@@ -83,22 +83,18 @@ def plot_partial_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_pa
 def main():
     # set paths
     path = pathlib.Path(__file__)
-    data_dir = path.parents[2] / "data"
+    data_dir = path.parents[2] / "data" / "clean_stops"
     plot_dir = path.parents[2] / "plots"
 
     # load data
-    data = pd.read_csv(data_dir / "processed_1A_norreport.csv")
+    data = pd.read_csv(data_dir / "clean_1A_norreport.csv")
 
     # impute missing
     data = impute_missing(data, method='rolling', window=24)
 
     # plots
     plot_autocorrelation(data, n_lags=24*7*2, file_name="norreport_1A_autocorrelation.png", save_dir=plot_dir / "graphical_analysis")
-
     plot_partial_autocorrelation(data, n_lags=24*7+1, file_name="norreport_1A_partial_autocorrelation.png", save_dir=plot_dir)
-
-
-   
 
 if __name__ == "__main__":
     main()
